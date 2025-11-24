@@ -1,0 +1,307 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class HukumSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $now = Carbon::now();
+        $bulan = $now->format('m');
+        $tahun = $now->format('Y');
+
+        $data = [
+            // ========================================
+            // SASARAN STRATEGIS 1
+            // ========================================
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Persentase perkara yang diselesaikan tepat waktu',
+                'target' => 80.00,
+                'rumus' => '(Jumlah perkara diselesaikan tepat waktu / Jumlah perkara diselesaikan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Jumlah putusan yang menggunakan pendekatan keadilan restoratif',
+                'target' => 50.00,
+                'rumus' => '(Jumlah putusan yang menggunakan pendekatan keadilan restoratif / Jumlah perkara pidana yang diselesaikan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Persentase perkara yang tidak mengajukan upaya hukum banding',
+                'target' => 70.00,
+                'rumus' => '(Jumlah perkara yang tidak mengajukan banding / Jumlah perkara inkrah) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Persentase perkara yang tidak mengajukan upaya hukum kasasi',
+                'target' => 45.00,
+                'rumus' => '(Jumlah perkara yang tidak kasasi / Jumlah perkara inkrah) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Persentase perkara pidana anak yang diselesaikan dengan diversi',
+                'target' => 10.00,
+                'rumus' => '(Perkara diversi / Perkara pidana anak diselesaikan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Terwujudnya proses peradilan yang pasti, transparan dan akuntabel.',
+                'indikator_kinerja' => 'Index responden pencari keadilan yang puas terhadap layanan peradilan',
+                'target' => 86.00,
+                'rumus' => '(Responden puas / Total responden) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
+            // ========================================
+            // SASARAN STRATEGIS 2
+            // ========================================
+            [
+                'sasaran_strategis' => 'Peningkatan efektivitas pengelolaan penyelesaian perkara',
+                'indikator_kinerja' => 'Persentase salinan putusan yang disampaikan tepat waktu',
+                'target' => 100.00,
+                'rumus' => '(Salinan tepat waktu / Semua salinan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan efektivitas pengelolaan penyelesaian perkara',
+                'indikator_kinerja' => 'Persentase perkara yang diselesaikan melalui mediasi',
+                'target' => 50.00,
+                'rumus' => '(Mediasi berhasil / Perkara perdata selesai) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan efektivitas pengelolaan penyelesaian perkara',
+                'indikator_kinerja' => 'Skor evaluasi implementasi SIPP',
+                'target' => 92.00,
+                'rumus' => '(Skor / Skor maksimal) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
+            // ========================================
+            // SASARAN STRATEGIS 3
+            // ========================================
+            [
+                'sasaran_strategis' => 'Meningkatnya akses peradilan bagi masyarakat miskin dan terpinggirkan.',
+                'indikator_kinerja' => 'Persentase perkara yang diselesaikan di luar gedung pengadilan',
+                'target' => 98.00,
+                'rumus' => '(Sidang di luar gedung / Perkara diselesaikan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Meningkatnya akses peradilan bagi masyarakat miskin dan terpinggirkan.',
+                'indikator_kinerja' => 'Persentase perkara prodeo yang diselesaikan',
+                'target' => 100.00,
+                'rumus' => '(Perkara prodeo selesai / Perkara prodeo diterima) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Meningkatnya akses peradilan bagi masyarakat miskin dan terpinggirkan.',
+                'indikator_kinerja' => 'Persentase pencari keadilan golongan tertentu yang mendapat Posbakum',
+                'target' => 100.00,
+                'rumus' => '(Penerima Posbakum / Pencari keadilan golongan tertentu) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
+            // ========================================
+            // SASARAN STRATEGIS 4
+            // ========================================
+            [
+                'sasaran_strategis' => 'Meningkatnya kepatuhan terhadap putusan pengadilan',
+                'indikator_kinerja' => 'Persentase putusan perdata yang ditindaklanjuti',
+                'target' => 20.00,
+                'rumus' => '(Eksekusi putusan / Putusan inkrah) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
+            // ========================================
+            // SASARAN STRATEGIS 5
+            // ========================================
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Persentase pengaduan masyarakat yang ditindaklanjuti',
+                'target' => 100.00,
+                'rumus' => '(Pengaduan ditindaklanjuti / Total pengaduan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Persentase temuan pemeriksaan eksternal ditindaklanjuti',
+                'target' => 100.00,
+                'rumus' => '(Temuan ditindaklanjuti / Total temuan) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Indeks persepsi korupsi terhadap layanan peradilan',
+                'target' => 90.00,
+                'rumus' => '(Responden bebas korupsi / Total responden) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Nilai capaian SAKIP',
+                'target' => 70.00,
+                'rumus' => '(Skor capaian / Skor maksimal) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Nilai capaian Sertifikasi Mutu Peradilan Unggul dan Tangguh (AMPUH)',
+                'target' => 75.00,
+                'rumus' => '(Skor AMPUH / Skor maksimal) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'sasaran_strategis' => 'Peningkatan pelaksanaan Pengawasan, Akuntabilitas & Reformasi Birokrasi',
+                'indikator_kinerja' => 'Nilai capaian Sistem Manajemen Anti Penyuapan',
+                'target' => 70.00,
+                'rumus' => '(Skor SMAP / Skor maksimal) x 100%',
+                'input_1' => null,
+                'input_2' => null,
+                'realisasi' => null,
+                'capaian' => null,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ];
+
+        DB::table('hukums')->insert($data);
+    }
+}
