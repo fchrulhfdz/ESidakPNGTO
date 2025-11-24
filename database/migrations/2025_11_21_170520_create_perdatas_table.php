@@ -17,12 +17,16 @@ return new class extends Migration {
 
             $table->string('input_1')->nullable();
             $table->string('input_2')->nullable();
+            $table->string('label_input_1')->nullable();
+            $table->string('label_input_2')->nullable();
             $table->string('realisasi')->nullable();
             $table->string('capaian')->nullable();
+            
 
             // Tambahkan kolom bulan dan tahun
             $table->integer('bulan')->nullable(); // 1-12
             $table->integer('tahun')->nullable(); // 2024, 2025, dst
+            
 
             $table->timestamps();
         });

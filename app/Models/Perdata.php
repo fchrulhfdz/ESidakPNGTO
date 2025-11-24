@@ -16,6 +16,8 @@ class Perdata extends Model
         'indikator_kinerja',
         'target',
         'rumus',
+        'label_input_1', // Tambahkan ini
+        'label_input_2', // Tambahkan ini
         'input_1',
         'input_2',
         'realisasi',
@@ -70,6 +72,28 @@ class Perdata extends Model
         $this->attributes['tahun'] = $value ? (int) $value : null;
     }
 
+    // Mutator untuk label input (jika diperlukan)
+    public function setLabelInput1Attribute($value)
+    {
+        $this->attributes['label_input_1'] = $value ?: 'Jumlah Perkara Diselesaikan';
+    }
+
+    public function setLabelInput2Attribute($value)
+    {
+        $this->attributes['label_input_2'] = $value ?: 'Jumlah Perkara Tepat Waktu';
+    }
+
+    // Accessor untuk label input (jika kosong, berikan nilai default)
+    public function getLabelInput1Attribute($value)
+    {
+        return $value ?: 'Jumlah Perkara Diselesaikan';
+    }
+
+    public function getLabelInput2Attribute($value)
+    {
+        return $value ?: 'Jumlah Perkara Tepat Waktu';
+    }
+
     private function cleanDecimalValue($value)
     {
         if (is_null($value) || $value === '') {
@@ -109,5 +133,16 @@ class Perdata extends Model
         ];
         
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
+    }
+
+    // Method untuk mendapatkan label input yang aman (tidak null)
+    public function getSafeLabelInput1()
+    {
+        return $this->label_input_1 ?: 'Jumlah Perkara Diselesaikan';
+    }
+
+    public function getSafeLabelInput2()
+    {
+        return $this->label_input_2 ?: 'Jumlah Perkara Tepat Waktu';
     }
 }

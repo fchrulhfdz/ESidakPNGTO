@@ -143,7 +143,7 @@
             @if($data->count() > 0)
             <div class="divide-y divide-gray-100">
                 @foreach($data as $index => $item)
-                <div class="accordion-item group hover:bg-gray-50 transition-colors duration-200" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}">
+                <div class="accordion-item group hover:bg-gray-50 transition-colors duration-200" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}" data-realisasi="{{ $item->realisasi }}" data-capaian="{{ $item->capaian }}">
                     <button class="accordion-header w-full px-6 py-5 text-left">
                         <div class="flex justify-between items-center">
                             <div class="flex-1">
@@ -336,43 +336,93 @@
                 <input type="hidden" name="indikator_kinerja" id="indikator_hidden" value="{{ old('indikator_kinerja') }}">
                 <input type="hidden" name="target" id="target_hidden" value="{{ old('target') }}">
                 <input type="hidden" name="rumus" id="rumus_hidden" value="{{ old('rumus') }}">
+                <input type="hidden" name="bulan" id="bulan_hidden" value="{{ old('bulan') }}">
+                <input type="hidden" name="tahun" id="tahun_hidden" value="{{ old('tahun') }}">
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                        <select id="pilihSasaran" required
-                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                            <option value="">Pilih Sasaran Strategis</option>
-                            @foreach($data as $item)
-                                <option value="{{ $item->id }}" 
-                                        data-sasaran="{{ $item->sasaran_strategis }}"
-                                        data-indikator="{{ $item->indikator_kinerja }}"
-                                        data-target="{{ $item->target }}"
-                                        data-rumus="{{ $item->rumus }}"
-                                        @if(old('sasaran_strategis') == $item->sasaran_strategis) selected @endif>
-                                    {{ Str::limit($item->sasaran_strategis, 50) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                        <input type="text" id="displayIndikator" readonly
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
-                               placeholder="Akan terisi otomatis">
+                        <!-- DROPDOWN BULAN -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                            <select name="bulan" id="bulan" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Bulan</option>
+                                <option value="1" {{ old('bulan') == '1' ? 'selected' : '' }}>Januari</option>
+                                <option value="2" {{ old('bulan') == '2' ? 'selected' : '' }}>Februari</option>
+                                <option value="3" {{ old('bulan') == '3' ? 'selected' : '' }}>Maret</option>
+                                <option value="4" {{ old('bulan') == '4' ? 'selected' : '' }}>April</option>
+                                <option value="5" {{ old('bulan') == '5' ? 'selected' : '' }}>Mei</option>
+                                <option value="6" {{ old('bulan') == '6' ? 'selected' : '' }}>Juni</option>
+                                <option value="7" {{ old('bulan') == '7' ? 'selected' : '' }}>Juli</option>
+                                <option value="8" {{ old('bulan') == '8' ? 'selected' : '' }}>Agustus</option>
+                                <option value="9" {{ old('bulan') == '9' ? 'selected' : '' }}>September</option>
+                                <option value="10" {{ old('bulan') == '10' ? 'selected' : '' }}>Oktober</option>
+                                <option value="11" {{ old('bulan') == '11' ? 'selected' : '' }}>November</option>
+                                <option value="12" {{ old('bulan') == '12' ? 'selected' : '' }}>Desember</option>
+                            </select>
+                        </div>
+                        
+                        <!-- INPUT TAHUN -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                            <input type="number" name="tahun" id="tahun" required min="2000" max="2100"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                                   value="{{ old('tahun', date('Y')) }}">
+                        </div>
+
+                        <!-- DROPDOWN SASARAN STRATEGIS -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                            <select id="pilihSasaran" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Sasaran Strategis</option>
+                                @foreach($data as $item)
+                                    <option value="{{ $item->id }}" 
+                                            data-sasaran="{{ $item->sasaran_strategis }}"
+                                            data-indikator="{{ $item->indikator_kinerja }}"
+                                            data-target="{{ $item->target }}"
+                                            data-rumus="{{ $item->rumus }}"
+                                            data-bulan="{{ $item->bulan }}"
+                                            data-tahun="{{ $item->tahun }}"
+                                            @if(old('sasaran_strategis') == $item->sasaran_strategis) selected @endif>
+                                        {{ Str::limit($item->sasaran_strategis, 50) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- DROPDOWN INDIKATOR KINERJA -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                            <select id="pilihIndikator" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Indikator Kinerja</option>
+                                @foreach($data as $item)
+                                    <option value="{{ $item->id }}" 
+                                            data-sasaran="{{ $item->sasaran_strategis }}"
+                                            data-indikator="{{ $item->indikator_kinerja }}"
+                                            data-target="{{ $item->target }}"
+                                            data-rumus="{{ $item->rumus }}"
+                                            data-bulan="{{ $item->bulan }}"
+                                            data-tahun="{{ $item->tahun }}"
+                                            @if(old('indikator_kinerja') == $item->indikator_kinerja) selected @endif>
+                                        {{ Str::limit($item->indikator_kinerja, 50) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Perkara Diselesaikan</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Diselesaikan</label>
                             <input type="number" name="input_1" id="input_1" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_1') }}">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Perkara Tepat Waktu</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Tepat Waktu</label>
                             <input type="number" name="input_2" id="input_2" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_2') }}">
@@ -702,19 +752,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentYear = String(now.getFullYear());
 
     // Set nilai default filter ke bulan dan tahun saat ini
-    filterBulan.value = currentMonth;
-    filterTahun.value = currentYear;
+    if (filterBulan) filterBulan.value = currentMonth;
+    if (filterTahun) filterTahun.value = currentYear;
 
     // Filter data saat halaman dimuat
     filterData();
 
-    cariBtn.addEventListener('click', function() {
-        filterData();
-    });
+    if (cariBtn) {
+        cariBtn.addEventListener('click', function() {
+            filterData();
+        });
+    }
 
     function filterData() {
-        const bulan = String(filterBulan.value);
-        const tahun = String(filterTahun.value);
+        const bulan = String(filterBulan?.value || '');
+        const tahun = String(filterTahun?.value || '');
         
         if (!bulan || !tahun) {
             alert('Silahkan pilih bulan dan tahun terlebih dahulu');
@@ -736,7 +788,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        totalDataSpan.textContent = visibleCount;
+        if (totalDataSpan) {
+            totalDataSpan.textContent = visibleCount;
+        }
         updateRingkasanTable(bulan, tahun);
     }
 
@@ -744,30 +798,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const accordionItems = document.querySelectorAll('.accordion-item');
         const ringkasanBody = document.getElementById('ringkasanTableBody');
         
+        if (!ringkasanBody) return;
+        
         let totalRealisasi = 0;
         let totalCapaian = 0;
         let count = 0;
         
         accordionItems.forEach(item => {
             if (item.style.display !== 'none') {
-                // Ambil nilai dari konten accordion
-                const contentHTML = item.querySelector('.accordion-content').innerHTML;
-                
-                // Cari Realisasi
-                let realisasi = 0;
-                const realisasiMatch = contentHTML.match(/Realisasi<\/dt>\s*<dd[^>]*>(?:[^<]*?<[^>]*>)*([^<]*?[\d.]+[^<]*?%)/);
-                if (realisasiMatch) {
-                    const match = realisasiMatch[1].match(/([\d.]+)/);
-                    realisasi = match ? parseFloat(match[1]) : 0;
-                }
-                
-                // Cari Capaian dari badge di header
-                let capaian = 0;
-                const capaianBadge = item.querySelector('.accordion-header .px-3.py-1');
-                if (capaianBadge) {
-                    const match = capaianBadge.textContent.match(/([\d.]+)/);
-                    capaian = match ? parseFloat(match[1]) : 0;
-                }
+                const realisasi = parseFloat(item.getAttribute('data-realisasi') || 0);
+                const capaian = parseFloat(item.getAttribute('data-capaian') || 0);
                 
                 totalRealisasi += realisasi;
                 totalCapaian += capaian;
@@ -775,6 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        const avgRealisasi = count > 0 ? totalRealisasi / count : 0;
         const avgCapaian = count > 0 ? totalCapaian / count : 0;
         const avgCapaianColor = avgCapaian >= 100 ? 'bg-green-100 text-green-800' : 
                                (avgCapaian >= 80 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
@@ -783,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <tr class="bg-gray-50 font-semibold">
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        ${totalRealisasi.toFixed(2)}%
+                        ${avgRealisasi.toFixed(2)}%
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -824,16 +865,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Close modal
-    document.getElementById('closeModal').addEventListener('click', function() {
-        document.getElementById('editModal').classList.add('hidden');
-    });
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            document.getElementById('editModal').classList.add('hidden');
+        });
+    }
     
     // Close modal when clicking outside
-    document.getElementById('editModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-    });
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                document.getElementById('editModal').classList.add('hidden');
+            }
+        });
+    }
     
     // Info tooltip for sasaran strategis
     const infoBtn = document.getElementById('infoSasaran');
@@ -843,34 +890,245 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Form input data functionality
+    // Form input data functionality - DIPERBARUI UNTUK DUA DROPDOWN
     const pilihSasaran = document.getElementById('pilihSasaran');
-    const displayIndikator = document.getElementById('displayIndikator');
+    const pilihIndikator = document.getElementById('pilihIndikator');
     const sasaranHidden = document.getElementById('sasaran_hidden');
     const indikatorHidden = document.getElementById('indikator_hidden');
     const targetHidden = document.getElementById('target_hidden');
     const rumusHidden = document.getElementById('rumus_hidden');
+    const bulanHidden = document.getElementById('bulan_hidden');
+    const tahunHidden = document.getElementById('tahun_hidden');
     
+    // Elemen dropdown bulan dan input tahun yang terlihat
+    const bulanDropdown = document.getElementById('bulan');
+    const tahunInput = document.getElementById('tahun');
+    
+    // Fungsi untuk filter sasaran strategis berdasarkan bulan dan tahun
+    function filterSasaranStrategis() {
+        const selectedBulan = bulanDropdown?.value || '';
+        const selectedTahun = tahunInput?.value || '';
+        
+        if (!pilihSasaran) return;
+        
+        // Loop melalui semua opsi sasaran strategis
+        const options = pilihSasaran.querySelectorAll('option');
+        let hasVisibleOptions = false;
+        
+        options.forEach(option => {
+            if (option.value === '') {
+                // Opsi placeholder, selalu tampilkan
+                option.style.display = '';
+                return;
+            }
+            
+            const optionBulan = option.getAttribute('data-bulan');
+            const optionTahun = option.getAttribute('data-tahun');
+            
+            // Tampilkan hanya jika bulan dan tahun sesuai
+            if (optionBulan === selectedBulan && optionTahun === selectedTahun) {
+                option.style.display = '';
+                hasVisibleOptions = true;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        
+        // Reset pilihan jika opsi yang dipilih tidak sesuai dengan filter
+        const selectedOption = pilihSasaran.options[pilihSasaran.selectedIndex];
+        if (selectedOption && selectedOption.style.display === 'none') {
+            pilihSasaran.value = '';
+            resetFormFields();
+        }
+        
+        // Tampilkan pesan jika tidak ada opsi yang tersedia
+        showNoDataMessage(pilihSasaran, hasVisibleOptions, selectedBulan, selectedTahun, 'sasaran strategis');
+    }
+    
+    // Fungsi untuk filter indikator kinerja berdasarkan bulan dan tahun
+    function filterIndikatorKinerja() {
+        const selectedBulan = bulanDropdown?.value || '';
+        const selectedTahun = tahunInput?.value || '';
+        
+        if (!pilihIndikator) return;
+        
+        // Loop melalui semua opsi indikator kinerja
+        const options = pilihIndikator.querySelectorAll('option');
+        let hasVisibleOptions = false;
+        
+        options.forEach(option => {
+            if (option.value === '') {
+                // Opsi placeholder, selalu tampilkan
+                option.style.display = '';
+                return;
+            }
+            
+            const optionBulan = option.getAttribute('data-bulan');
+            const optionTahun = option.getAttribute('data-tahun');
+            
+            // Tampilkan hanya jika bulan dan tahun sesuai
+            if (optionBulan === selectedBulan && optionTahun === selectedTahun) {
+                option.style.display = '';
+                hasVisibleOptions = true;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        
+        // Reset pilihan jika opsi yang dipilih tidak sesuai dengan filter
+        const selectedOption = pilihIndikator.options[pilihIndikator.selectedIndex];
+        if (selectedOption && selectedOption.style.display === 'none') {
+            pilihIndikator.value = '';
+            resetFormFields();
+        }
+        
+        // Tampilkan pesan jika tidak ada opsi yang tersedia
+        showNoDataMessage(pilihIndikator, hasVisibleOptions, selectedBulan, selectedTahun, 'indikator kinerja');
+    }
+    
+    // Fungsi untuk menampilkan pesan tidak ada data
+    function showNoDataMessage(selectElement, hasVisibleOptions, bulan, tahun, type) {
+        if (!hasVisibleOptions && bulan && tahun) {
+            // Tambahkan pesan sementara di dropdown
+            const existingMessage = selectElement.querySelector('.no-data-message');
+            if (!existingMessage) {
+                const messageOption = document.createElement('option');
+                messageOption.value = '';
+                messageOption.textContent = `Tidak ada ${type} untuk bulan dan tahun yang dipilih`;
+                messageOption.disabled = true;
+                messageOption.selected = true;
+                messageOption.classList.add('no-data-message');
+                selectElement.appendChild(messageOption);
+            }
+        } else {
+            // Hapus pesan jika ada
+            const existingMessage = selectElement.querySelector('.no-data-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+        }
+    }
+    
+    // Fungsi untuk reset semua field form
+    function resetFormFields() {
+        sasaranHidden.value = '';
+        indikatorHidden.value = '';
+        targetHidden.value = '';
+        rumusHidden.value = '';
+        bulanHidden.value = '';
+        tahunHidden.value = '';
+        
+        // Reset tombol submit
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
+            submitBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        }
+        
+        // Reset hasil perhitungan
+        const realisasiInput = document.getElementById('realisasi');
+        const capaianInput = document.getElementById('capaian');
+        if (realisasiInput) realisasiInput.value = '';
+        if (capaianInput) capaianInput.value = '';
+    }
+    
+    // Fungsi untuk mengisi form fields dari dropdown yang dipilih
+    function fillFormFields(selectedOption) {
+        if (selectedOption.value) {
+            sasaranHidden.value = selectedOption.getAttribute('data-sasaran');
+            indikatorHidden.value = selectedOption.getAttribute('data-indikator');
+            targetHidden.value = selectedOption.getAttribute('data-target');
+            rumusHidden.value = selectedOption.getAttribute('data-rumus');
+            
+            // Isi data bulan dan tahun dari data attribute
+            const dataBulan = selectedOption.getAttribute('data-bulan');
+            const dataTahun = selectedOption.getAttribute('data-tahun');
+            
+            bulanHidden.value = dataBulan;
+            tahunHidden.value = dataTahun;
+            
+            // Update dropdown bulan dan input tahun yang terlihat
+            if (bulanDropdown && dataBulan) {
+                bulanDropdown.value = dataBulan;
+            }
+            if (tahunInput && dataTahun) {
+                tahunInput.value = dataTahun;
+            }
+            
+            // Sync antara dropdown sasaran dan indikator
+            syncDropdowns(selectedOption);
+        } else {
+            resetFormFields();
+        }
+    }
+    
+    // Fungsi untuk sync antara dropdown sasaran dan indikator
+    function syncDropdowns(selectedOption) {
+        const selectedId = selectedOption.value;
+        const selectedType = selectedOption.parentElement.id;
+        
+        if (selectedType === 'pilihSasaran' && pilihIndikator) {
+            // Jika yang dipilih adalah sasaran, set indikator yang sesuai
+            pilihIndikator.value = selectedId;
+        } else if (selectedType === 'pilihIndikator' && pilihSasaran) {
+            // Jika yang dipilih adalah indikator, set sasaran yang sesuai
+            pilihSasaran.value = selectedId;
+        }
+    }
+    
+    // Panggil fungsi filter saat halaman dimuat
+    filterSasaranStrategis();
+    filterIndikatorKinerja();
+    
+    // Event listener untuk dropdown sasaran strategis
     if (pilihSasaran) {
         pilihSasaran.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                displayIndikator.value = selectedOption.getAttribute('data-indikator');
-                sasaranHidden.value = selectedOption.getAttribute('data-sasaran');
-                indikatorHidden.value = selectedOption.getAttribute('data-indikator');
-                targetHidden.value = selectedOption.getAttribute('data-target');
-                rumusHidden.value = selectedOption.getAttribute('data-rumus');
-            } else {
-                displayIndikator.value = '';
-                sasaranHidden.value = '';
-                indikatorHidden.value = '';
-                targetHidden.value = '';
-                rumusHidden.value = '';
+            
+            // Skip jika ini adalah pesan "no data"
+            if (selectedOption.classList.contains('no-data-message')) {
+                return;
             }
+            
+            fillFormFields(selectedOption);
         });
     }
     
-    // Hitung functionality
+    // Event listener untuk dropdown indikator kinerja
+    if (pilihIndikator) {
+        pilihIndikator.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            // Skip jika ini adalah pesan "no data"
+            if (selectedOption.classList.contains('no-data-message')) {
+                return;
+            }
+            
+            fillFormFields(selectedOption);
+        });
+    }
+    
+    // Event listener untuk update hidden field ketika user mengubah bulan/tahun secara manual
+    if (bulanDropdown) {
+        bulanDropdown.addEventListener('change', function() {
+            bulanHidden.value = this.value;
+            // Filter ulang sasaran strategis dan indikator kinerja saat bulan berubah
+            filterSasaranStrategis();
+            filterIndikatorKinerja();
+        });
+    }
+    
+    if (tahunInput) {
+        tahunInput.addEventListener('input', function() {
+            tahunHidden.value = this.value;
+            // Filter ulang sasaran strategis dan indikator kinerja saat tahun berubah
+            filterSasaranStrategis();
+            filterIndikatorKinerja();
+        });
+    }
+    
+    // Hitung functionality dengan validasi bulan dan tahun
     const hitungBtn = document.getElementById('hitungBtn');
     const submitBtn = document.getElementById('submitBtn');
     const input1 = document.getElementById('input_1');
@@ -884,8 +1142,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const perkaraTepatWaktu = parseFloat(input2.value) || 0;
             const target = parseFloat(targetHidden.value) || 0;
             
+            // Validasi input wajib
             if (perkaraDiselesaikan === 0) {
                 alert('Jumlah perkara diselesaikan tidak boleh 0');
+                return;
+            }
+            
+            // Validasi bulan dan tahun
+            if (!bulanHidden.value || !tahunHidden.value) {
+                alert('Silakan pilih bulan dan tahun terlebih dahulu');
+                return;
+            }
+            
+            // Validasi sasaran strategis
+            if (!sasaranHidden.value) {
+                alert('Silakan pilih sasaran strategis terlebih dahulu');
+                return;
+            }
+            
+            // Validasi indikator kinerja
+            if (!indikatorHidden.value) {
+                alert('Silakan pilih indikator kinerja terlebih dahulu');
                 return;
             }
             
@@ -902,6 +1179,44 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
             submitBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
             submitBtn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
+        });
+    }
+
+    // Form validation sebelum submit
+    const formInputData = document.getElementById('formInputData');
+    if (formInputData) {
+        formInputData.addEventListener('submit', function(e) {
+            // Validasi final sebelum submit
+            if (!bulanHidden.value || !tahunHidden.value) {
+                e.preventDefault();
+                alert('Bulan dan tahun harus diisi');
+                return;
+            }
+            
+            if (!sasaranHidden.value) {
+                e.preventDefault();
+                alert('Sasaran strategis harus dipilih');
+                return;
+            }
+            
+            if (!indikatorHidden.value) {
+                e.preventDefault();
+                alert('Indikator kinerja harus dipilih');
+                return;
+            }
+            
+            if (!input1.value || !input2.value) {
+                e.preventDefault();
+                alert('Data input perkara harus diisi');
+                return;
+            }
+            
+            // Pastikan realisasi dan capaian sudah dihitung
+            if (!realisasiInput.value || !capaianInput.value) {
+                e.preventDefault();
+                alert('Silakan klik tombol Hitung terlebih dahulu');
+                return;
+            }
         });
     }
 });

@@ -352,19 +352,17 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <div class="logo-container">
-                <div class="logo-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L3 7V21H21V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <div class="institution-name">Pengadilan Negeri<br>Gorontalo</div>
-            </div>
-            <div class="login-title">Login</div>
+    <div class="logo-container">
+        <div class="logo-icon">
+            <img src="{{ asset('storage/logo/logopn.png') }}" 
+                 alt="Logo PN Gorontalo"
+                 style="width: 48px; height: auto;">
         </div>
+        <div class="institution-name">Pengadilan Negeri<br>Gorontalo</div>
+    </div>
+    <div class="login-title">Login</div>
+</div>
+
         
         <form class="login-form" method="POST" action="{{ route('login') }}">
             @csrf

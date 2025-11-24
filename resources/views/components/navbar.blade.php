@@ -5,19 +5,22 @@
     <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center h-16">
             <!-- Logo/Brand -->
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-green-700 shadow-md">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L3 7V21H21V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 12H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <a href="{{ route('dashboard') }}" class="text-xl font-bold tracking-tight hover:text-green-100 transition-colors duration-300">
-                    E-SIDAK <span class="font-normal">PN Gorontalo</span>
-                </a>
-            </div>
+<div class="flex items-center space-x-3">
+    <div class="w-10 h-10 flex items-center justify-center">
+        <img 
+            src="{{ asset('storage/logo/logopn.png') }}" 
+            alt="Logo PN Gorontalo"
+            class="w-10 h-10 object-contain rounded-full shadow-md bg-white p-1"
+        >
+    </div>
+
+    <a href="{{ route('dashboard') }}" 
+       class="text-xl font-bold tracking-tight hover:text-green-100 transition-colors duration-300">
+        E-SIDAK <span class="font-normal">PN Gorontalo</span>
+    </a>
+</div>
+
+
             
             <!-- Desktop Navigation -->
             <div class="hidden md:block">

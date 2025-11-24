@@ -42,19 +42,16 @@ class PerkaraController extends Controller
     // Method utama untuk menampilkan data
     private function showPerkaraByType(Request $request, $jenis)
     {
-        // Validasi jenis perkara
         $validJenis = ['perdata', 'pidana', 'tipikor', 'phi', 'hukum'];
         if (!in_array($jenis, $validJenis)) {
             abort(404);
         }
 
-        // Cek authorization
         $user = auth()->user();
         if (!$user->isSuperAdmin() && $user->bagian !== $jenis) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
-        // Ambil data berdasarkan jenis - tampilkan SEMUA data, filtering dilakukan di frontend
         $model = $this->getModel($jenis);
         $data = $model::orderBy('tahun', 'desc')
                      ->orderBy('bulan', 'desc')
@@ -108,7 +105,7 @@ class PerkaraController extends Controller
 
             Log::info('Store Perkara Request Data:', $request->all());
 
-            // Cek authorization sebelum menyimpan
+            // Cek authorization
             if (!$user->isSuperAdmin() && $user->bagian !== $jenis) {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk menyimpan data di bagian ini.')->withInput();
@@ -125,34 +122,40 @@ class PerkaraController extends Controller
                 'tahun' => 'required|numeric|min:2020|max:'.(date('Y')+5),
             ];
 
-            if (!$user->isSuperAdmin()) {
-                $validationRules['input_1'] = 'required|integer|min:0';
-                $validationRules['input_2'] = 'required|integer|min:0';
-            } else {
+            // Tambahkan validasi untuk label input jika Super Admin
+            if ($user->isSuperAdmin()) {
+                $validationRules['label_input_1'] = 'required|string|max:255';
+                $validationRules['label_input_2'] = 'required|string|max:255';
                 $validationRules['input_1'] = 'nullable|integer|min:0';
                 $validationRules['input_2'] = 'nullable|integer|min:0';
+            } else {
+                $validationRules['input_1'] = 'required|integer|min:0';
+                $validationRules['input_2'] = 'required|integer|min:0';
             }
 
             $validated = $request->validate($validationRules);
             Log::info('Validation passed. Data:', $validated);
 
-            // Konversi bulan ke integer (handle jika ada leading zero)
+            // Konversi data
             $bulan = (int) $validated['bulan'];
             $tahun = (int) $validated['tahun'];
             
-            // Handle nilai null/empty dan pastikan tipe data numerik
             $input1 = isset($validated['input_1']) ? (int) $validated['input_1'] : 0;
             $input2 = isset($validated['input_2']) ? (int) $validated['input_2'] : 0;
             $target = (float) $validated['target'];
 
-            Log::info("Converted values - Bulan: $bulan, Tahun: $tahun, Input1: $input1, Input2: $input2, Target: $target");
+            // Untuk Super Admin, ambil label input dari form
+            $labelInput1 = $user->isSuperAdmin() ? $validated['label_input_1'] : null;
+            $labelInput2 = $user->isSuperAdmin() ? $validated['label_input_2'] : null;
 
-            // Validasi tambahan untuk kalkulasi
+            Log::info("Converted values - Bulan: $bulan, Tahun: $tahun, Input1: $input1, Input2: $input2, Target: $target, Label1: $labelInput1, Label2: $labelInput2");
+
+            // Validasi tambahan
             if ($input1 < 0) $input1 = 0;
             if ($input2 < 0) $input2 = 0;
             if ($input2 > $input1) $input2 = $input1;
 
-            // Kalkulasi realisasi dan capaian dengan handling division by zero
+            // Kalkulasi
             $realisasi = 0;
             $capaian = 0;
 
@@ -164,18 +167,18 @@ class PerkaraController extends Controller
                 $capaian = ($realisasi / $target) * 100;
             }
 
-            // Format nilai ke 2 decimal places
             $realisasi = round($realisasi, 2);
             $capaian = round($capaian, 2);
 
             Log::info("Calculation complete - Realisasi: $realisasi, Capaian: $capaian");
 
-            // Simpan ke model yang sesuai
+            // Simpan ke model
             $modelClass = $this->getModel($jenis);
             Log::info("Using model class: " . $modelClass);
             
-            // Cari data berdasarkan sasaran_strategis, bulan, dan tahun
+            // Cari data yang sudah ada berdasarkan sasaran_strategis, indikator_kinerja, bulan, dan tahun
             $existingData = $modelClass::where('sasaran_strategis', $validated['sasaran_strategis'])
+                                 ->where('indikator_kinerja', $validated['indikator_kinerja'])
                                  ->where('bulan', $bulan)
                                  ->where('tahun', $tahun)
                                  ->first();
@@ -183,8 +186,7 @@ class PerkaraController extends Controller
             if ($existingData) {
                 // UPDATE data yang sudah ada
                 Log::info("Existing data found. ID: " . $existingData->id);
-                $existingData->update([
-                    'indikator_kinerja' => $validated['indikator_kinerja'],
+                $updateData = [
                     'target' => $target,
                     'rumus' => $validated['rumus'],
                     'input_1' => $input1,
@@ -192,14 +194,22 @@ class PerkaraController extends Controller
                     'realisasi' => $realisasi,
                     'capaian' => $capaian,
                     'updated_at' => now(),
-                ]);
+                ];
+
+                // Hanya Super Admin yang bisa update label
+                if ($user->isSuperAdmin()) {
+                    $updateData['label_input_1'] = $labelInput1;
+                    $updateData['label_input_2'] = $labelInput2;
+                }
+
+                $existingData->update($updateData);
                 $data = $existingData;
                 $message = 'Data berhasil diupdate!';
                 Log::info('Data berhasil diupdate:', $data->toArray());
             } else {
-                // BUAT data baru hanya jika belum ada
+                // BUAT data baru
                 Log::info("Creating new data...");
-                $data = $modelClass::create([
+                $createData = [
                     'sasaran_strategis' => $validated['sasaran_strategis'],
                     'indikator_kinerja' => $validated['indikator_kinerja'],
                     'target' => $target,
@@ -212,7 +222,15 @@ class PerkaraController extends Controller
                     'tahun' => $tahun,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+
+                // Hanya Super Admin yang bisa set label
+                if ($user->isSuperAdmin()) {
+                    $createData['label_input_1'] = $labelInput1;
+                    $createData['label_input_2'] = $labelInput2;
+                }
+
+                $data = $modelClass::create($createData);
                 $message = 'Data berhasil disimpan!';
                 Log::info('Data baru berhasil dibuat:', $data->toArray());
             }
@@ -236,8 +254,9 @@ class PerkaraController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Validasi
-            $validated = $request->validate([
+            $user = auth()->user();
+            
+            $validationRules = [
                 'sasaran_strategis' => 'required|string|max:255',
                 'indikator_kinerja' => 'required|string|max:255',
                 'target' => 'required|numeric|min:0|max:100',
@@ -245,14 +264,20 @@ class PerkaraController extends Controller
                 'jenis' => 'required|string|in:perdata,pidana,tipikor,phi,hukum',
                 'bulan' => 'required|integer|between:1,12',
                 'tahun' => 'required|integer|min:2020',
-            ]);
+            ];
 
-            // Pastikan target bertipe float
+            // Hanya Super Admin yang bisa mengupdate label
+            if ($user->isSuperAdmin()) {
+                $validationRules['label_input_1'] = 'required|string|max:255';
+                $validationRules['label_input_2'] = 'required|string|max:255';
+            }
+
+            $validated = $request->validate($validationRules);
+
             $validated['target'] = (float) $validated['target'];
             $validated['bulan'] = (int) $validated['bulan'];
             $validated['tahun'] = (int) $validated['tahun'];
 
-            // Cari dan update data
             $model = $this->getModel($validated['jenis']);
             $data = $model::findOrFail($id);
 

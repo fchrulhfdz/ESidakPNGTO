@@ -13,7 +13,7 @@
         @if(auth()->user()->isSuperAdmin())
             <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100">Super Admin</span>
         @else
-            <span class="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-purple-100">Admin Hukum</span>
+            <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100">Admin Hukum</span>
         @endif
     </div>
 
@@ -96,7 +96,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                    <select id="filterBulan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white">
+                    <select id="filterBulan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                         <option value="">Pilih Bulan</option>
                         <option value="1">Januari</option>
                         <option value="2">Februari</option>
@@ -115,7 +115,7 @@
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                    <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white">
+                    <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                         <option value="">Pilih Tahun</option>
                         @for($year = date('Y'); $year >= 2020; $year--)
                             <option value="{{ $year }}">{{ $year }}</option>
@@ -124,7 +124,7 @@
                 </div>
                 
                 <div class="flex items-end">
-                    <button id="cariBtn" class="w-full bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 transition duration-200 font-medium">
+                    <button id="cariBtn" class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
                         Cari
                     </button>
                 </div>
@@ -136,7 +136,7 @@
                 <h2 class="text-lg font-semibold text-gray-900">Data Perkara Hukum</h2>
                 <div class="flex items-center space-x-4">
                     <p class="text-gray-600 text-sm">Total: <span id="totalData">{{ $data->count() }}</span> data</p>
-                    <button id="toggleAll" class="text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors duration-150">Buka Semua</button>
+                    <button id="toggleAll" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-150">Buka Semua</button>
                 </div>
             </div>
             
@@ -236,7 +236,7 @@
                             </div>
                             @if(auth()->user()->isSuperAdmin())
                             <div class="flex space-x-3">
-                                <button type="button" class="text-purple-600 hover:text-purple-800 text-sm font-medium edit-btn transition-colors duration-150" 
+                                <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-btn transition-colors duration-150" 
                                         data-id="{{ $item->id }}"
                                         data-sasaran="{{ $item->sasaran_strategis }}"
                                         data-indikator="{{ $item->indikator_kinerja }}"
@@ -303,7 +303,7 @@
                         @endforeach
                         <tr class="bg-gray-50 font-semibold">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {{ number_format($totalRealisasi, 2) }}%
                                 </span>
                             </td>
@@ -343,7 +343,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
                         <select id="pilihSasaran" required
-                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white">
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                             <option value="">Pilih Sasaran Strategis</option>
                             @foreach($data as $item)
                                 <option value="{{ $item->id }}" 
@@ -371,32 +371,32 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Diselesaikan</label>
                             <input type="number" name="input_1" id="input_1" required min="0"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_1') }}">
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Tepat Waktu</label>
                             <input type="number" name="input_2" id="input_2" required min="0"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_2') }}">
                         </div>
                     </div>
 
-                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                        <h3 class="text-sm font-medium text-purple-800 mb-3">Hasil Perhitungan</h3>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <h3 class="text-sm font-medium text-blue-800 mb-3">Hasil Perhitungan</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs text-purple-700 mb-1 font-medium">Realisasi</label>
+                                <label class="block text-xs text-blue-700 mb-1 font-medium">Realisasi</label>
                                 <input type="text" id="realisasi" readonly
-                                       class="w-full px-3 py-2.5 border border-purple-300 rounded-lg bg-white text-center font-semibold text-purple-800"
+                                       class="w-full px-3 py-2.5 border border-blue-300 rounded-lg bg-white text-center font-semibold text-blue-800"
                                        value="{{ old('realisasi') }}">
                             </div>
                             
                             <div>
-                                <label class="block text-xs text-purple-700 mb-1 font-medium">Capaian</label>
+                                <label class="block text-xs text-blue-700 mb-1 font-medium">Capaian</label>
                                 <input type="text" id="capaian" readonly
-                                       class="w-full px-3 py-2.5 border border-purple-300 rounded-lg bg-white text-center font-semibold text-purple-800"
+                                       class="w-full px-3 py-2.5 border border-blue-300 rounded-lg bg-white text-center font-semibold text-blue-800"
                                        value="{{ old('capaian') }}">
                             </div>
                         </div>
@@ -404,7 +404,7 @@
 
                     <div class="flex justify-between items-center pt-2">
                         <button type="button" id="hitungBtn" 
-                                class="bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 transition duration-200 flex items-center font-medium">
+                                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
@@ -445,7 +445,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
                         <input type="text" name="sasaran_strategis" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                value="{{ old('sasaran_strategis') }}"
                                placeholder="Masukkan sasaran strategis">
                         @error('sasaran_strategis')
@@ -456,7 +456,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
                         <input type="text" name="indikator_kinerja" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                value="{{ old('indikator_kinerja') }}"
                                placeholder="Masukkan indikator kinerja">
                         @error('indikator_kinerja')
@@ -468,7 +468,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
                             <input type="number" name="target" step="0.01" required min="0" max="100"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('target') }}"
                                    placeholder="0.00">
                             @error('target')
@@ -479,7 +479,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
                             <input type="text" name="rumus" required
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('rumus') }}"
                                    placeholder="Contoh: (Jumlah Tepat Waktu / Jumlah Diselesaikan) × 100%">
                             @error('rumus')
@@ -492,7 +492,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
                             <select name="bulan" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white">
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                                 <option value="">Pilih Bulan</option>
                                 <option value="1" @if(old('bulan') == '1') selected @endif>Januari</option>
                                 <option value="2" @if(old('bulan') == '2') selected @endif>Februari</option>
@@ -515,7 +515,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <input type="number" name="tahun" required min="2020"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('tahun', date('Y')) }}"
                                    placeholder="2025">
                             @error('tahun')
@@ -526,7 +526,7 @@
 
                     <div class="flex justify-end pt-2">
                         <button type="submit" 
-                                class="bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 transition duration-200 flex items-center font-medium">
+                                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
@@ -555,32 +555,32 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
                         <input type="text" name="sasaran_strategis" id="edit_sasaran" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
                         <input type="text" name="indikator_kinerja" id="edit_indikator" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
                         <input type="number" name="target" id="edit_target" step="0.01" required min="0" max="100"
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
                         <input type="text" name="rumus" id="edit_rumus" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
                             <select name="bulan" id="edit_bulan" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white">
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                                 <option value="">Pilih Bulan</option>
                                 <option value="1">Januari</option>
                                 <option value="2">Februari</option>
@@ -600,7 +600,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <input type="number" name="tahun" id="edit_tahun" required min="2020"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                    value="{{ date('Y') }}">
                         </div>
                     </div>
@@ -612,7 +612,7 @@
                         Batal
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 font-medium">
+                            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
                         Update
                     </button>
                 </div>
@@ -786,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tableHtml = `
             <tr class="bg-gray-50 font-semibold">
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         ${totalRealisasi.toFixed(2)}%
                     </span>
                 </td>
