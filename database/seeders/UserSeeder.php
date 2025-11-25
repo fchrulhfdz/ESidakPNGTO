@@ -2,93 +2,93 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        // Super Admin
-        User::create([
-            'name' => 'Super Administrator',
-            'email' => 'superadmin@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'super_admin',
-            'bagian' => null,
-        ]);
+        $users = [
+            // Super Admin
+            [
+                'name' => 'Super Admin',
+                'email' => 'superadmin@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'super_admin'
+            ],
 
-        // Admin Perdata
-        User::create([
-            'name' => 'Admin Perdata',
-            'email' => 'perdata@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'perdata',
-        ]);
+            // Perkara - Perdata
+            [
+                'name' => 'Admin Perdata',
+                'email' => 'perdata@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'perdata'
+            ],
 
-        // Admin Pidana
-        User::create([
-            'name' => 'Admin Pidana',
-            'email' => 'pidana@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'pidana',
-        ]);
+            // Perkara - Pidana
+            [
+                'name' => 'Admin Pidana',
+                'email' => 'pidana@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'pidana'
+            ],
 
-        // Admin Tipikor
-        User::create([
-            'name' => 'Admin Tipikor',
-            'email' => 'tipikor@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'tipikor',
-        ]);
+            // Perkara - Tipikor
+            [
+                'name' => 'Admin Tipikor',
+                'email' => 'tipikor@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'tipikor'
+            ],
 
-        // Admin PHI
-        User::create([
-            'name' => 'Admin PHI',
-            'email' => 'phi@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'phi',
-        ]);
+            // Perkara - PHI
+            [
+                'name' => 'Admin PHI',
+                'email' => 'phi@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'phi'
+            ],
 
-        // Admin Hukum
-        User::create([
-            'name' => 'Admin Hukum',
-            'email' => 'hukum@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'hukum',
-        ]);
+            // Perkara - Hukum
+            [
+                'name' => 'Admin Hukum',
+                'email' => 'hukum@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'hukum'
+            ],
 
-        // Admin PTIP
-        User::create([
-            'name' => 'Admin PTIP',
-            'email' => 'ptip@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'ptip',
-        ]);
+            // Kesekretariatan - PTIP
+            [
+                'name' => 'Admin PTIP',
+                'email' => 'ptip@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'ptip'
+            ],
 
-        // Admin Umum & Keuangan
-        User::create([
-            'name' => 'Admin Umum & Keuangan',
-            'email' => 'umumkeuangan@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'umum_keuangan',
-        ]);
+            // Kesekretariatan - Umum & Keuangan
+            [
+                'name' => 'Admin Umum & Keuangan',
+                'email' => 'umumkeuangan@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'umum_keuangan'
+            ],
 
-        // Admin Kepegawaian
-        User::create([
-            'name' => 'Admin Kepegawaian',
-            'email' => 'kepegawaian@pn-gorontalo.go.id',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-            'bagian' => 'kepegawaian',
-        ]);
+            // Kesekretariatan - Kepegawaian
+            [
+                'name' => 'Admin Kepegawaian',
+                'email' => 'kepegawaian@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'kepegawaian'
+            ],
+        ];
+
+        foreach ($users as $user) {
+            User::create($user);
+        }
     }
 }

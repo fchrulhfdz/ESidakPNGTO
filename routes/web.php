@@ -15,8 +15,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 // ==================== PERKARA ROUTES ====================
-Route::middleware(['auth'])->group(function () {
-    // Route khusus untuk setiap jenis perkara
+Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/perdata', [PerkaraController::class, 'showPerdata'])->name('perdata');
     Route::get('/pidana', [PerkaraController::class, 'showPidana'])->name('pidana');
     Route::get('/tipikor', [PerkaraController::class, 'showTipikor'])->name('tipikor');
@@ -33,15 +32,26 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ==================== KESECKRETARIATAN ROUTES ====================
-Route::middleware(['auth'])->group(function () {
-    Route::get('/ptip', [KesekretariatanController::class, 'showPTIP'])->name('ptip');
-    Route::get('/umum-keuangan', [KesekretariatanController::class, 'showUmumKeuangan'])->name('umum-keuangan');
-    Route::get('/kepegawaian', [KesekretariatanController::class, 'showKepegawaian'])->name('kepegawaian');
+Route::middleware(['auth', 'admin'])->group(function () {
+    // Routes untuk menampilkan halaman
+    Route::get('/ptip', [KesekretariatanController::class, 'show'])->name('ptip');
+    Route::get('/umum-keuangan', [KesekretariatanController::class, 'show'])->name('umum-keuangan');
+    Route::get('/kepegawaian', [KesekretariatanController::class, 'show'])->name('kepegawaian');
     
     // CRUD Routes untuk Kesekretariatan
-    Route::post('/kesekretariatan/store', [KesekretariatanController::class, 'store'])->name('store.kesekretariatan');
-    Route::put('/kesekretariatan/{id}', [KesekretariatanController::class, 'update'])->name('kesekretariatan.update');
-    Route::delete('/kesekretariatan/{id}', [KesekretariatanController::class, 'destroy'])->name('kesekretariatan.destroy');
+    Route::post('/ptip/store', [KesekretariatanController::class, 'store'])->name('store.ptip');
+    Route::post('/umum-keuangan/store', [KesekretariatanController::class, 'store'])->name('store.umum-keuangan');
+    Route::post('/kepegawaian/store', [KesekretariatanController::class, 'store'])->name('store.kepegawaian');
+    
+    // Update routes
+    Route::put('/ptip/{id}', [KesekretariatanController::class, 'update'])->name('ptip.update');
+    Route::put('/umum-keuangan/{id}', [KesekretariatanController::class, 'update'])->name('umum-keuangan.update');
+    Route::put('/kepegawaian/{id}', [KesekretariatanController::class, 'update'])->name('kepegawaian.update');
+    
+    // Delete routes  
+    Route::delete('/ptip/{id}', [KesekretariatanController::class, 'destroy'])->name('ptip.destroy');
+    Route::delete('/umum-keuangan/{id}', [KesekretariatanController::class, 'destroy'])->name('umum-keuangan.destroy');
+    Route::delete('/kepegawaian/{id}', [KesekretariatanController::class, 'destroy'])->name('kepegawaian.destroy');
     
     // Route untuk kalkulasi kesekretariatan
     Route::post('/kesekretariatan/calculate', [KesekretariatanController::class, 'calculate'])->name('calculate.kesekretariatan');

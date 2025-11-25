@@ -12,6 +12,7 @@ use App\Models\UmumKeuangan;
 use App\Models\Kepegawaian;
 use Illuminate\Http\Request;
 use PDF;
+use Illuminate\Support\Facades\Auth;
 
 class LaporanController extends Controller
 {
@@ -24,7 +25,7 @@ class LaporanController extends Controller
             $tahun = $request->tahun;
             $bagian = $request->bagian;
 
-            // Ambil data berdasarkan filter
+            // Ambil data berdasarkan filter dan role user
             $data = $this->getFilteredData($bulan, $tahun, $bagian);
         }
 
@@ -61,17 +62,43 @@ class LaporanController extends Controller
             'kepegawaian' => Kepegawaian::class,
         ];
 
-        // Jika memilih semua bagian
-        if ($bagian === 'all') {
-            foreach ($models as $jenis => $modelClass) {
-                $modelData = $this->queryData($modelClass, $bulan, $tahun, $jenis);
+        $user = Auth::user();
+
+        // Jika user adalah super admin, maka bisa memilih semua bagian
+        if ($user->role === 'super_admin') {
+            // Jika memilih semua bagian
+            if ($bagian === 'all') {
+                foreach ($models as $jenis => $modelClass) {
+                    $modelData = $this->queryData($modelClass, $bulan, $tahun, $jenis);
+                    $data = $data->merge($modelData);
+                }
+            } 
+            // Jika memilih bagian tertentu
+            else if (array_key_exists($bagian, $models)) {
+                $modelData = $this->queryData($models[$bagian], $bulan, $tahun, $bagian);
                 $data = $data->merge($modelData);
             }
         } 
-        // Jika memilih bagian tertentu
-        else if (array_key_exists($bagian, $models)) {
-            $modelData = $this->queryData($models[$bagian], $bulan, $tahun, $bagian);
-            $data = $data->merge($modelData);
+        // Jika user bukan super admin, maka hanya menampilkan bagian sesuai role
+        else {
+            // Mapping role user ke bagian yang sesuai
+            $roleToBagian = [
+                'perdata' => 'perdata',
+                'pidana' => 'pidana',
+                'tipikor' => 'tipikor',
+                'phi' => 'phi',
+                'hukum' => 'hukum',
+                'ptip' => 'ptip',
+                'umum_keuangan' => 'umum_keuangan',
+                'kepegawaian' => 'kepegawaian',
+            ];
+
+            if (array_key_exists($user->role, $roleToBagian)) {
+                $bagianUser = $roleToBagian[$user->role];
+                $modelClass = $models[$bagianUser];
+                $modelData = $this->queryData($modelClass, $bulan, $tahun, $bagianUser);
+                $data = $data->merge($modelData);
+            }
         }
 
         return $data;

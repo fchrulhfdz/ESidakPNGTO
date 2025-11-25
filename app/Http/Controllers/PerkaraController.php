@@ -48,7 +48,7 @@ class PerkaraController extends Controller
         }
 
         $user = auth()->user();
-        if (!$user->isSuperAdmin() && $user->bagian !== $jenis) {
+        if (!$user->isSuperAdmin() && $user->role !== $jenis) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
@@ -106,7 +106,7 @@ class PerkaraController extends Controller
             Log::info('Store Perkara Request Data:', $request->all());
 
             // Cek authorization
-            if (!$user->isSuperAdmin() && $user->bagian !== $jenis) {
+            if (!$user->isSuperAdmin() && $user->role !== $jenis) {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk menyimpan data di bagian ini.')->withInput();
             }
@@ -114,23 +114,27 @@ class PerkaraController extends Controller
             // Validasi berbeda untuk Super Admin dan Admin Biasa
             $validationRules = [
                 'jenis' => 'required|string|in:perdata,pidana,tipikor,phi,hukum',
-                'sasaran_strategis' => 'required|string|max:255',
-                'indikator_kinerja' => 'required|string|max:255',
-                'target' => 'required|numeric|min:0|max:100',
-                'rumus' => 'required|string|max:500',
                 'bulan' => 'required|numeric|between:1,12',
                 'tahun' => 'required|numeric|min:2020|max:'.(date('Y')+5),
             ];
 
-            // Tambahkan validasi untuk label input jika Super Admin
-            if ($user->isSuperAdmin()) {
+            // Jika user adalah Super Admin (menambah sasaran strategis baru)
+            if ($user->isSuperAdmin() && $request->has('sasaran_strategis')) {
+                $validationRules['sasaran_strategis'] = 'required|string|max:255';
+                $validationRules['indikator_kinerja'] = 'required|string|max:255';
+                $validationRules['target'] = 'required|numeric|min:0|max:100';
+                $validationRules['rumus'] = 'required|string|max:500';
                 $validationRules['label_input_1'] = 'required|string|max:255';
                 $validationRules['label_input_2'] = 'required|string|max:255';
                 $validationRules['input_1'] = 'nullable|integer|min:0';
                 $validationRules['input_2'] = 'nullable|integer|min:0';
             } else {
+                // Untuk Admin Biasa atau Super Admin yang input data
+                $validationRules['sasaran_strategis'] = 'required|string|max:255';
+                $validationRules['indikator_kinerja'] = 'required|string|max:255';
                 $validationRules['input_1'] = 'required|integer|min:0';
                 $validationRules['input_2'] = 'required|integer|min:0';
+                // Untuk non-Super Admin, kita akan mengambil target dan rumus dari database
             }
 
             $validated = $request->validate($validationRules);
@@ -142,11 +146,30 @@ class PerkaraController extends Controller
             
             $input1 = isset($validated['input_1']) ? (int) $validated['input_1'] : 0;
             $input2 = isset($validated['input_2']) ? (int) $validated['input_2'] : 0;
-            $target = (float) $validated['target'];
 
-            // Untuk Super Admin, ambil label input dari form
-            $labelInput1 = $user->isSuperAdmin() ? $validated['label_input_1'] : null;
-            $labelInput2 = $user->isSuperAdmin() ? $validated['label_input_2'] : null;
+            // Untuk Super Admin yang membuat sasaran baru
+            if ($user->isSuperAdmin() && $request->has('sasaran_strategis')) {
+                $target = (float) $validated['target'];
+                $labelInput1 = $validated['label_input_1'];
+                $labelInput2 = $validated['label_input_2'];
+                $rumus = $validated['rumus'];
+            } else {
+                // Untuk Admin Biasa atau input data, ambil target dari database berdasarkan sasaran yang dipilih
+                $modelClass = $this->getModel($jenis);
+                $existingSasaran = $modelClass::where('sasaran_strategis', $validated['sasaran_strategis'])
+                    ->where('indikator_kinerja', $validated['indikator_kinerja'])
+                    ->first();
+                
+                if ($existingSasaran) {
+                    $target = (float) $existingSasaran->target;
+                    $rumus = $existingSasaran->rumus;
+                    $labelInput1 = $existingSasaran->label_input_1;
+                    $labelInput2 = $existingSasaran->label_input_2;
+                } else {
+                    DB::rollBack();
+                    return redirect()->back()->with('error', 'Sasaran strategis tidak ditemukan.')->withInput();
+                }
+            }
 
             Log::info("Converted values - Bulan: $bulan, Tahun: $tahun, Input1: $input1, Input2: $input2, Target: $target, Label1: $labelInput1, Label2: $labelInput2");
 
@@ -187,8 +210,6 @@ class PerkaraController extends Controller
                 // UPDATE data yang sudah ada
                 Log::info("Existing data found. ID: " . $existingData->id);
                 $updateData = [
-                    'target' => $target,
-                    'rumus' => $validated['rumus'],
                     'input_1' => $input1,
                     'input_2' => $input2,
                     'realisasi' => $realisasi,
@@ -196,8 +217,10 @@ class PerkaraController extends Controller
                     'updated_at' => now(),
                 ];
 
-                // Hanya Super Admin yang bisa update label
-                if ($user->isSuperAdmin()) {
+                // Hanya Super Admin yang bisa update label dan target saat membuat sasaran baru
+                if ($user->isSuperAdmin() && $request->has('sasaran_strategis')) {
+                    $updateData['target'] = $target;
+                    $updateData['rumus'] = $rumus;
                     $updateData['label_input_1'] = $labelInput1;
                     $updateData['label_input_2'] = $labelInput2;
                 }
@@ -212,8 +235,6 @@ class PerkaraController extends Controller
                 $createData = [
                     'sasaran_strategis' => $validated['sasaran_strategis'],
                     'indikator_kinerja' => $validated['indikator_kinerja'],
-                    'target' => $target,
-                    'rumus' => $validated['rumus'],
                     'input_1' => $input1,
                     'input_2' => $input2,
                     'realisasi' => $realisasi,
@@ -224,8 +245,16 @@ class PerkaraController extends Controller
                     'updated_at' => now(),
                 ];
 
-                // Hanya Super Admin yang bisa set label
-                if ($user->isSuperAdmin()) {
+                // Hanya Super Admin yang bisa set label dan target saat membuat sasaran baru
+                if ($user->isSuperAdmin() && $request->has('sasaran_strategis')) {
+                    $createData['target'] = $target;
+                    $createData['rumus'] = $rumus;
+                    $createData['label_input_1'] = $labelInput1;
+                    $createData['label_input_2'] = $labelInput2;
+                } else {
+                    // Untuk non-Super Admin, gunakan target dan rumus dari sasaran yang dipilih
+                    $createData['target'] = $target;
+                    $createData['rumus'] = $rumus;
                     $createData['label_input_1'] = $labelInput1;
                     $createData['label_input_2'] = $labelInput2;
                 }

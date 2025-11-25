@@ -16,8 +16,8 @@ class Perdata extends Model
         'indikator_kinerja',
         'target',
         'rumus',
-        'label_input_1', // Tambahkan ini
-        'label_input_2', // Tambahkan ini
+        'label_input_1',
+        'label_input_2', 
         'input_1',
         'input_2',
         'realisasi',

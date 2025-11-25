@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->text('indikator_kinerja');
 
             $table->string('target')->nullable();
-            $table->string('rumus')->nullable();
+            $table->text('rumus')->nullable();
 
             $table->string('input_1')->nullable();
             $table->string('input_2')->nullable();
@@ -21,10 +21,16 @@ return new class extends Migration {
             $table->string('label_input_2')->nullable();
             $table->string('realisasi')->nullable();
             $table->string('capaian')->nullable();
+            
+            // Tambahkan kolom bulan dan tahun
             $table->integer('bulan')->nullable(); // 1-12
-            $table->integer('tahun')->nullable(); // 2024, 2025,
+            $table->integer('tahun')->nullable(); // 2024, 2025, dst
+            
+            $table->timestamps();
 
-            $table->timestamps(); // created_at & updated_at
+            // Optional: tambahkan index untuk performa query
+            $table->index(['bulan', 'tahun']);
+            $table->index('tahun');
         });
     }
 

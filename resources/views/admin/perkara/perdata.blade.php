@@ -344,6 +344,9 @@
                 <input type="hidden" name="rumus" id="rumus_hidden" value="{{ old('rumus') }}">
                 <input type="hidden" name="bulan" id="bulan_hidden" value="{{ old('bulan') }}">
                 <input type="hidden" name="tahun" id="tahun_hidden" value="{{ old('tahun') }}">
+                <!-- TAMBAHAN: Hidden field untuk label input -->
+                <input type="hidden" name="label_input_1" id="label_input_1_hidden" value="{{ old('label_input_1') }}">
+                <input type="hidden" name="label_input_2" id="label_input_2_hidden" value="{{ old('label_input_2') }}">
 
                 <div class="space-y-6">
                     <div>
@@ -426,7 +429,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_1">
-                                Jumlah Perkara Diselesaikan
+                                Label input 1
                             </label>
                             <input type="number" name="input_1" id="input_1" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
@@ -435,7 +438,7 @@
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_2">
-                                Jumlah Perkara Tepat Waktu
+                                Label input 2
                             </label>
                             <input type="number" name="input_2" id="input_2" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
@@ -957,6 +960,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulanHidden = document.getElementById('bulan_hidden');
     const tahunHidden = document.getElementById('tahun_hidden');
     
+    // TAMBAHAN: Hidden field untuk label input
+    const labelInput1Hidden = document.getElementById('label_input_1_hidden');
+    const labelInput2Hidden = document.getElementById('label_input_2_hidden');
+    
     // Elemen dropdown bulan dan input tahun yang terlihat
     const bulanDropdown = document.getElementById('bulan');
     const tahunInput = document.getElementById('tahun');
@@ -1079,9 +1086,13 @@ document.addEventListener('DOMContentLoaded', function() {
         bulanHidden.value = '';
         tahunHidden.value = '';
         
+        // TAMBAHAN: Reset hidden field untuk label
+        if (labelInput1Hidden) labelInput1Hidden.value = '';
+        if (labelInput2Hidden) labelInput2Hidden.value = '';
+        
         // Reset label ke default
-        if (labelInput1) labelInput1.textContent = 'Jumlah Perkara Diselesaikan';
-        if (labelInput2) labelInput2.textContent = 'Jumlah Perkara Tepat Waktu';
+        if (labelInput1) labelInput1.textContent = 'Label input 1';
+        if (labelInput2) labelInput2.textContent = 'Label input 2';
         
         // Reset tombol submit
         const submitBtn = document.getElementById('submitBtn');
@@ -1117,6 +1128,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (labelInput2 && labelInput2Value) {
                 labelInput2.textContent = labelInput2Value;
             }
+            
+            // TAMBAHAN: Update hidden fields untuk label
+            if (labelInput1Hidden) labelInput1Hidden.value = labelInput1Value;
+            if (labelInput2Hidden) labelInput2Hidden.value = labelInput2Value;
             
             // Isi data bulan dan tahun dari data attribute
             const dataBulan = selectedOption.getAttribute('data-bulan');

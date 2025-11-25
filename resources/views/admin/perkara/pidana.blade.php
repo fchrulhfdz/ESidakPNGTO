@@ -203,11 +203,15 @@
                                 @if($item->input_1 !== null && $item->input_2 !== null)
                                 <dl class="space-y-3">
                                     <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Perkara Diselesaikan</dt>
+                                        <dt class="text-xs text-gray-500 font-medium">
+                                            {{ $item->getSafeLabelInput1() }}
+                                        </dt>
                                         <dd class="text-sm font-medium text-gray-900 mt-1">{{ $item->input_1 }}</dd>
                                     </div>
                                     <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Perkara Tepat Waktu</dt>
+                                        <dt class="text-xs text-gray-500 font-medium">
+                                            {{ $item->getSafeLabelInput2() }}
+                                        </dt>
                                         <dd class="text-sm font-medium text-gray-900 mt-1">{{ $item->input_2 }}</dd>
                                     </div>
                                     <div>
@@ -244,6 +248,8 @@
                                         data-rumus="{{ $item->rumus }}"
                                         data-bulan="{{ $item->bulan }}"
                                         data-tahun="{{ $item->tahun }}"
+                                        data-label-input-1="{{ $item->label_input_1 }}"
+                                        data-label-input-2="{{ $item->label_input_2 }}"
                                         data-jenis="pidana">
                                     Edit
                                 </button>
@@ -338,6 +344,9 @@
                 <input type="hidden" name="rumus" id="rumus_hidden" value="{{ old('rumus') }}">
                 <input type="hidden" name="bulan" id="bulan_hidden" value="{{ old('bulan') }}">
                 <input type="hidden" name="tahun" id="tahun_hidden" value="{{ old('tahun') }}">
+                <!-- TAMBAHAN: Hidden field untuk label input -->
+                <input type="hidden" name="label_input_1" id="label_input_1_hidden" value="{{ old('label_input_1') }}">
+                <input type="hidden" name="label_input_2" id="label_input_2_hidden" value="{{ old('label_input_2') }}">
 
                 <div class="space-y-6">
                     <div>
@@ -384,6 +393,8 @@
                                             data-rumus="{{ $item->rumus }}"
                                             data-bulan="{{ $item->bulan }}"
                                             data-tahun="{{ $item->tahun }}"
+                                            data-label-input-1="{{ $item->label_input_1 }}"
+                                            data-label-input-2="{{ $item->label_input_2 }}"
                                             @if(old('sasaran_strategis') == $item->sasaran_strategis) selected @endif>
                                         {{ Str::limit($item->sasaran_strategis, 50) }}
                                     </option>
@@ -405,6 +416,8 @@
                                             data-rumus="{{ $item->rumus }}"
                                             data-bulan="{{ $item->bulan }}"
                                             data-tahun="{{ $item->tahun }}"
+                                            data-label-input-1="{{ $item->label_input_1 }}"
+                                            data-label-input-2="{{ $item->label_input_2 }}"
                                             @if(old('indikator_kinerja') == $item->indikator_kinerja) selected @endif>
                                         {{ Str::limit($item->indikator_kinerja, 50) }}
                                     </option>
@@ -415,14 +428,18 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Diselesaikan</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_1">
+                                Label input 1
+                            </label>
                             <input type="number" name="input_1" id="input_1" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_1') }}">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Perkara Tepat Waktu</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_2">
+                                Label input 2
+                            </label>
                             <input type="number" name="input_2" id="input_2" required min="0"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                                    value="{{ old('input_2') }}">
@@ -471,120 +488,144 @@
     </div>
 
     <!-- Tab Content: Sasaran Strategis (Super Admin Only) -->
-    @if(auth()->user()->isSuperAdmin())
-    <div id="sasaranContent" class="tab-content hidden">
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-semibold text-gray-900">Tambah Sasaran Strategis Baru</h2>
-                <button id="infoSasaran" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </button>
-            </div>
+@if(auth()->user()->isSuperAdmin())
+<div id="sasaranContent" class="tab-content hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-semibold text-gray-900">Tambah Sasaran Strategis Baru</h2>
+            <button id="infoSasaran" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
+        </div>
+        
+        <form action="{{ route('store.perkara') }}" method="POST" id="formTambahSasaran">
+            @csrf
+            <input type="hidden" name="jenis" value="pidana">
             
-            <form action="{{ route('store.perkara') }}" method="POST" id="formTambahSasaran">
-                @csrf
-                <input type="hidden" name="jenis" value="pidana">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                    <input type="text" name="sasaran_strategis" required
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                           value="{{ old('sasaran_strategis') }}"
+                           placeholder="Masukkan sasaran strategis">
+                    @error('sasaran_strategis')
+                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                    @enderror
+                </div>
                 
-                <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                    <input type="text" name="indikator_kinerja" required
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                           value="{{ old('indikator_kinerja') }}"
+                           placeholder="Masukkan indikator kinerja">
+                    @error('indikator_kinerja')
+                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                        <input type="text" name="sasaran_strategis" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
+                        <input type="number" name="target" step="0.01" required min="0" max="100"
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('sasaran_strategis') }}"
-                               placeholder="Masukkan sasaran strategis">
-                        @error('sasaran_strategis')
+                               value="{{ old('target') }}"
+                               placeholder="0.00">
+                        @error('target')
                             <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                        <input type="text" name="indikator_kinerja" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
+                        <input type="text" name="rumus" required
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('indikator_kinerja') }}"
-                               placeholder="Masukkan indikator kinerja">
-                        @error('indikator_kinerja')
+                               value="{{ old('rumus') }}"
+                               placeholder="Contoh: (Jumlah Tepat Waktu / Jumlah Diselesaikan) × 100%">
+                        @error('rumus')
                             <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
-                            <input type="number" name="target" step="0.01" required min="0" max="100"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('target') }}"
-                                   placeholder="0.00">
-                            @error('target')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
-                            <input type="text" name="rumus" required
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('rumus') }}"
-                                   placeholder="Contoh: (Jumlah Tepat Waktu / Jumlah Diselesaikan) × 100%">
-                            @error('rumus')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
+                <!-- TAMBAHAN: Input Label untuk Input 1 dan Input 2 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
+                        <input type="text" name="label_input_1" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('label_input_1') }}"
+                               placeholder="Contoh: Jumlah Perkara Diselesaikan">
+                        @error('label_input_1')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                            <select name="bulan" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Bulan</option>
-                                <option value="1" @if(old('bulan') == '1') selected @endif>Januari</option>
-                                <option value="2" @if(old('bulan') == '2') selected @endif>Februari</option>
-                                <option value="3" @if(old('bulan') == '3') selected @endif>Maret</option>
-                                <option value="4" @if(old('bulan') == '4') selected @endif>April</option>
-                                <option value="5" @if(old('bulan') == '5') selected @endif>Mei</option>
-                                <option value="6" @if(old('bulan') == '6') selected @endif>Juni</option>
-                                <option value="7" @if(old('bulan') == '7') selected @endif>Juli</option>
-                                <option value="8" @if(old('bulan') == '8') selected @endif>Agustus</option>
-                                <option value="9" @if(old('bulan') == '9') selected @endif>September</option>
-                                <option value="10" @if(old('bulan') == '10') selected @endif>Oktober</option>
-                                <option value="11" @if(old('bulan') == '11') selected @endif>November</option>
-                                <option value="12" @if(old('bulan') == '12') selected @endif>Desember</option>
-                            </select>
-                            @error('bulan')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                            <input type="number" name="tahun" required min="2020"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('tahun', date('Y')) }}"
-                                   placeholder="2025">
-                            @error('tahun')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" 
-                                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Simpan Sasaran Strategis
-                        </button>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 2</label>
+                        <input type="text" name="label_input_2" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('label_input_2') }}"
+                               placeholder="Contoh: Jumlah Perkara Tepat Waktu">
+                        @error('label_input_2')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
-            </form>
-        </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                        <select name="bulan" required
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                            <option value="">Pilih Bulan</option>
+                            <option value="1" @if(old('bulan') == '1') selected @endif>Januari</option>
+                            <option value="2" @if(old('bulan') == '2') selected @endif>Februari</option>
+                            <option value="3" @if(old('bulan') == '3') selected @endif>Maret</option>
+                            <option value="4" @if(old('bulan') == '4') selected @endif>April</option>
+                            <option value="5" @if(old('bulan') == '5') selected @endif>Mei</option>
+                            <option value="6" @if(old('bulan') == '6') selected @endif>Juni</option>
+                            <option value="7" @if(old('bulan') == '7') selected @endif>Juli</option>
+                            <option value="8" @if(old('bulan') == '8') selected @endif>Agustus</option>
+                            <option value="9" @if(old('bulan') == '9') selected @endif>September</option>
+                            <option value="10" @if(old('bulan') == '10') selected @endif>Oktober</option>
+                            <option value="11" @if(old('bulan') == '11') selected @endif>November</option>
+                            <option value="12" @if(old('bulan') == '12') selected @endif>Desember</option>
+                        </select>
+                        @error('bulan')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                        <input type="number" name="tahun" required min="2020"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('tahun', date('Y')) }}"
+                               placeholder="2025">
+                        @error('tahun')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Simpan Sasaran Strategis
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
-    @endif
 </div>
+@endif
 
 <!-- Modal Edit -->
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300 flex items-center justify-center p-4">
@@ -620,6 +661,21 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
                         <input type="text" name="rumus" id="edit_rumus" required
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    </div>
+
+                    <!-- TAMBAHAN: Input Label untuk Input 1 dan Input 2 di Modal Edit -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
+                            <input type="text" name="label_input_1" id="edit_label_input_1" required
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 2</label>
+                            <input type="text" name="label_input_2" id="edit_label_input_2" required
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -838,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ringkasanBody.innerHTML = tableHtml;
     }
     
-    // Edit button functionality
+    // Edit button functionality - DIPERBARUI DENGAN LABEL
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
@@ -849,6 +905,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const jenis = this.getAttribute('data-jenis');
             const bulan = this.getAttribute('data-bulan');
             const tahun = this.getAttribute('data-tahun');
+            const labelInput1 = this.getAttribute('data-label-input-1');
+            const labelInput2 = this.getAttribute('data-label-input-2');
             
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_sasaran').value = sasaran;
@@ -858,6 +916,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('edit_jenis').value = jenis;
             document.getElementById('edit_bulan').value = bulan;
             document.getElementById('edit_tahun').value = tahun;
+            document.getElementById('edit_label_input_1').value = labelInput1 || '';
+            document.getElementById('edit_label_input_2').value = labelInput2 || '';
             
             document.getElementById('editForm').action = `{{ url('perkara') }}/${id}`;
             document.getElementById('editModal').classList.remove('hidden');
@@ -890,7 +950,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Form input data functionality - DIPERBARUI UNTUK DUA DROPDOWN
+    // Form input data functionality - DIPERBARUI DENGAN LABEL DINAMIS
     const pilihSasaran = document.getElementById('pilihSasaran');
     const pilihIndikator = document.getElementById('pilihIndikator');
     const sasaranHidden = document.getElementById('sasaran_hidden');
@@ -900,9 +960,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const bulanHidden = document.getElementById('bulan_hidden');
     const tahunHidden = document.getElementById('tahun_hidden');
     
+    // TAMBAHAN: Hidden field untuk label input
+    const labelInput1Hidden = document.getElementById('label_input_1_hidden');
+    const labelInput2Hidden = document.getElementById('label_input_2_hidden');
+    
     // Elemen dropdown bulan dan input tahun yang terlihat
     const bulanDropdown = document.getElementById('bulan');
     const tahunInput = document.getElementById('tahun');
+    
+    // Elemen label untuk input 1 dan input 2
+    const labelInput1 = document.getElementById('label_input_1');
+    const labelInput2 = document.getElementById('label_input_2');
     
     // Fungsi untuk filter sasaran strategis berdasarkan bulan dan tahun
     function filterSasaranStrategis() {
@@ -1018,6 +1086,14 @@ document.addEventListener('DOMContentLoaded', function() {
         bulanHidden.value = '';
         tahunHidden.value = '';
         
+        // TAMBAHAN: Reset hidden field untuk label
+        if (labelInput1Hidden) labelInput1Hidden.value = '';
+        if (labelInput2Hidden) labelInput2Hidden.value = '';
+        
+        // Reset label ke default
+        if (labelInput1) labelInput1.textContent = 'Label input 1';
+        if (labelInput2) labelInput2.textContent = 'Label input 2';
+        
         // Reset tombol submit
         const submitBtn = document.getElementById('submitBtn');
         if (submitBtn) {
@@ -1033,13 +1109,29 @@ document.addEventListener('DOMContentLoaded', function() {
         if (capaianInput) capaianInput.value = '';
     }
     
-    // Fungsi untuk mengisi form fields dari dropdown yang dipilih
+    // Fungsi untuk mengisi form fields dari dropdown yang dipilih - DIPERBARUI DENGAN LABEL
     function fillFormFields(selectedOption) {
         if (selectedOption.value) {
             sasaranHidden.value = selectedOption.getAttribute('data-sasaran');
             indikatorHidden.value = selectedOption.getAttribute('data-indikator');
             targetHidden.value = selectedOption.getAttribute('data-target');
             rumusHidden.value = selectedOption.getAttribute('data-rumus');
+            
+            // Ambil label input dari data attribute
+            const labelInput1Value = selectedOption.getAttribute('data-label-input-1');
+            const labelInput2Value = selectedOption.getAttribute('data-label-input-2');
+            
+            // Update label di form input data
+            if (labelInput1 && labelInput1Value) {
+                labelInput1.textContent = labelInput1Value;
+            }
+            if (labelInput2 && labelInput2Value) {
+                labelInput2.textContent = labelInput2Value;
+            }
+            
+            // TAMBAHAN: Update hidden fields untuk label
+            if (labelInput1Hidden) labelInput1Hidden.value = labelInput1Value;
+            if (labelInput2Hidden) labelInput2Hidden.value = labelInput2Value;
             
             // Isi data bulan dan tahun dari data attribute
             const dataBulan = selectedOption.getAttribute('data-bulan');

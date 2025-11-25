@@ -17,6 +17,17 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('role', [
+                'super_admin', // Ubah dari 'super admin' menjadi 'super_admin'
+                'perdata', 
+                'pidana',
+                'tipikor',
+                'phi',
+                'hukum',
+                'ptip',
+                'umum_keuangan',
+                'kepegawaian'
+            ])->default('hukum');
             $table->rememberToken();
             $table->timestamps();
         });

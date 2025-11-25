@@ -11,46 +11,31 @@ class AdminMiddleware
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, string $bagian = null): Response
+    public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check()) {
             return redirect()->route('login');
         }
 
-        $user = auth()->user();
+        $allowedRoles = [
+            'perdata',
+            'pidana', 
+            'phi',
+            'tipikor',
+            'hukum',
+            'ptip',
+            'kepegawaian',
+            'umum_keuangan', // PERBAIKAN: gunakan underscore untuk database
+            'super_admin',
+        ];
 
-        // Super admin dapat mengakses semua
-        if ($user->role === 'super_admin') {
-            return $next($request);
+        $userRole = strtolower(trim(auth()->user()->role));
+
+        if (!in_array($userRole, $allowedRoles)) {
+            \Log::warning("Unauthorized access attempt by user ID: " . auth()->user()->id . " with role: " . auth()->user()->role);
+            abort(403, 'Akses ditolak. Anda tidak memiliki hak akses ke halaman ini.');
         }
 
-        // Admin biasa - cek akses ke bagian
-        if ($user->role === 'admin') {
-            // Jika tidak ada parameter bagian, izinkan akses (untuk halaman umum seperti dashboard)
-            if ($bagian === null) {
-                return $next($request);
-            }
-
-            // Mapping URL ke nilai bagian di database
-            $bagianMapping = [
-                'perdata' => 'perdata',
-                'pidana' => 'pidana',
-                'tipikor' => 'tipikor',
-                'phi' => 'phi',
-                'hukum' => 'hukum',
-                'ptip' => 'ptip',
-                'umum-keuangan' => 'umum_keuangan',
-                'kepegawaian' => 'kepegawaian'
-            ];
-
-            $dbBagian = $bagianMapping[$bagian] ?? $bagian;
-
-            // Cek kecocokan bagian
-            if ($user->bagian === $dbBagian) {
-                return $next($request);
-            }
-        }
-
-        abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.');
+        return $next($request);
     }
 }

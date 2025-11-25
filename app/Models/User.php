@@ -10,7 +10,7 @@ class User extends Authenticatable
     use Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'bagian'
+        'name', 'email', 'password', 'role'
     ];
 
     protected $hidden = [
@@ -28,25 +28,45 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->role !== 'super_admin';
     }
 
     /**
-     * Get the human-readable bagian name
+     * Get the human-readable bagian name from role
      */
     public function getBagianNameAttribute()
     {
         $bagianNames = [
+            'super_admin' => 'Super Admin',
             'perdata' => 'Perdata',
             'pidana' => 'Pidana',
             'tipikor' => 'Tipikor',
             'phi' => 'PHI',
             'hukum' => 'Hukum',
             'ptip' => 'PTIP',
-            'umum_keuangan' => 'Umum & Keuangan',
+            'umum_keuangan' => 'Umum & Keuangan', // PERBAIKAN: underscore untuk database
             'kepegawaian' => 'Kepegawaian',
         ];
 
-        return $bagianNames[$this->bagian] ?? $this->bagian;
+        return $bagianNames[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Get route name for user's bagian
+     */
+    public function getRouteForBagian()
+    {
+        $routeMapping = [
+            'perdata' => 'perdata',
+            'pidana' => 'pidana', 
+            'tipikor' => 'tipikor',
+            'phi' => 'phi',
+            'hukum' => 'hukum',
+            'ptip' => 'ptip',
+            'umum_keuangan' => 'umum-keuangan', // PERBAIKAN: mapping ke route dengan dash
+            'kepegawaian' => 'kepegawaian'
+        ];
+
+        return $routeMapping[$this->role] ?? 'dashboard';
     }
 }

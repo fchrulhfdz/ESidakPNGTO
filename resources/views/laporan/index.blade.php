@@ -34,6 +34,8 @@
                     </select>
                 </div>
                 
+                <!-- Hanya tampilkan dropdown bagian untuk super_admin -->
+                @if(auth()->user()->role === 'super_admin')
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Bagian</label>
                     <select name="bagian" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -52,6 +54,29 @@
                         </optgroup>
                     </select>
                 </div>
+                @else
+                <!-- Untuk user biasa, set bagian sesuai role mereka -->
+                <input type="hidden" name="bagian" value="{{ auth()->user()->role }}">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bagian</label>
+                    <div class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                        @php
+                            $bagianMapping = [
+                                'perdata' => 'Perdata',
+                                'pidana' => 'Pidana',
+                                'tipikor' => 'Tipikor',
+                                'phi' => 'PHI',
+                                'hukum' => 'Hukum',
+                                'ptip' => 'PTIP',
+                                'umum_keuangan' => 'Umum & Keuangan',
+                                'kepegawaian' => 'Kepegawaian'
+                            ];
+                        @endphp
+                        {{ $bagianMapping[auth()->user()->role] ?? ucfirst(auth()->user()->role) }}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Anda hanya dapat melihat laporan bagian Anda</p>
+                </div>
+                @endif
                 
                 <div class="flex items-end">
                     <button type="submit" name="search" value="1"
@@ -62,6 +87,33 @@
             </div>
         </form>
     </div>
+
+    <!-- Info Role User -->
+    @if(auth()->user()->role !== 'super_admin')
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-blue-700">
+                Anda login sebagai <strong>{{ $bagianMapping[auth()->user()->role] ?? ucfirst(auth()->user()->role) }}</strong>. 
+                Hanya dapat melihat laporan bagian Anda sendiri.
+            </p>
+        </div>
+    </div>
+    @else
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <p class="text-green-700">
+                Anda login sebagai <strong>Super Admin</strong>. 
+                Dapat melihat laporan dari semua bagian.
+            </p>
+        </div>
+    </div>
+    @endif
 
     <!-- Tombol Cetak PDF -->
     @if(request()->has('search'))
@@ -84,7 +136,9 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                        @if(auth()->user()->role === 'super_admin')
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bagian</th>
+                        @endif
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sasaran Strategis</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indikator Kinerja</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
@@ -98,6 +152,7 @@
                     @foreach($data as $index => $item)
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $index + 1 }}</td>
+                        @if(auth()->user()->role === 'super_admin')
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if(isset($item->jenis))
                                 @php
@@ -115,6 +170,7 @@
                                 {{ $jenisMapping[$item->jenis] ?? ucfirst($item->jenis) }}
                             @endif
                         </td>
+                        @endif
                         <td class="px-6 py-4">{{ $item->sasaran_strategis }}</td>
                         <td class="px-6 py-4">
                             @if(isset($item->indikator_kinerja))
@@ -137,7 +193,7 @@
                     @endforeach
                     @if($data->count() === 0)
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="{{ auth()->user()->role === 'super_admin' ? 9 : 8 }}" class="px-6 py-4 text-center text-gray-500">
                             <div class="flex flex-col items-center justify-center py-8">
                                 <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -156,11 +212,11 @@
         <div class="px-6 py-4 border-t border-gray-200">
             <p class="text-sm text-gray-600">
                 Menampilkan <span class="font-medium">{{ $data->count() }}</span> data
-                @if(request('bulan') || request('tahun') || request('bagian') != 'all')
+                @if(request('bulan') || request('tahun') || (request('bagian') && request('bagian') != 'all' && auth()->user()->role === 'super_admin'))
                     dengan filter:
                     @if(request('bulan')) Bulan {{ DateTime::createFromFormat('!m', request('bulan'))->format('F') }} @endif
                     @if(request('tahun')) Tahun {{ request('tahun') }} @endif
-                    @if(request('bagian') != 'all') 
+                    @if(request('bagian') && request('bagian') != 'all' && auth()->user()->role === 'super_admin') 
                         Bagian 
                         @php
                             $bagianMapping = [
@@ -177,6 +233,9 @@
                         {{ $bagianMapping[request('bagian')] ?? request('bagian') }}
                     @endif
                 @endif
+                @if(auth()->user()->role === 'super_admin' && (!request('bagian') || request('bagian') == 'all'))
+                    (Semua Bagian)
+                @endif
             </p>
         </div>
         @endif
@@ -188,7 +247,12 @@
         </svg>
         <h3 class="text-xl font-medium text-gray-600 mb-2">Pilih Filter Laporan</h3>
         <p class="text-gray-500">Gunakan form di atas untuk memfilter data laporan yang ingin ditampilkan.</p>
+        @if(auth()->user()->role !== 'super_admin')
+        <p class="text-blue-500 mt-2 font-medium">Anda hanya dapat melihat laporan bagian {{ $bagianMapping[auth()->user()->role] ?? ucfirst(auth()->user()->role) }}</p>
+        @else
+        <p class="text-green-500 mt-2 font-medium">Anda dapat melihat laporan dari semua bagian</p>
+        @endif
     </div>
     @endif
-</div>
+</div>  
 @endsection
