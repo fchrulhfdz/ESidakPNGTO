@@ -22,12 +22,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/phi', [PerkaraController::class, 'showPHI'])->name('phi');
     Route::get('/hukum', [PerkaraController::class, 'showHukum'])->name('hukum');
     
-    // CRUD Routes untuk Perkara
     Route::post('/perkara/store', [PerkaraController::class, 'store'])->name('store.perkara');
     Route::put('/perkara/{id}', [PerkaraController::class, 'update'])->name('perkara.update');
     Route::delete('/perkara/{id}', [PerkaraController::class, 'destroy'])->name('perkara.destroy');
     
-    // Route untuk kalkulasi
     Route::post('/perkara/calculate', [PerkaraController::class, 'calculate'])->name('calculate.perkara');
 });
 
@@ -53,14 +51,32 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/umum-keuangan/{id}', [KesekretariatanController::class, 'destroy'])->name('umum-keuangan.destroy');
     Route::delete('/kepegawaian/{id}', [KesekretariatanController::class, 'destroy'])->name('kepegawaian.destroy');
     
-    // Route untuk kalkulasi kesekretariatan
-    Route::post('/kesekretariatan/calculate', [KesekretariatanController::class, 'calculate'])->name('calculate.kesekretariatan');
+    // Routes untuk Lampiran PTIP
+    Route::get('/ptip/lampiran', [KesekretariatanController::class, 'showLampiran'])->name('ptip.lampiran.show');
+    Route::post('/ptip/lampiran', [KesekretariatanController::class, 'storeLampiran'])->name('ptip.lampiran.store');
+    Route::put('/ptip/lampiran/{id}', [KesekretariatanController::class, 'updateLampiran'])->name('ptip.lampiran.update');
+    Route::delete('/ptip/lampiran/{id}', [KesekretariatanController::class, 'destroyLampiran'])->name('ptip.lampiran.destroy');
+    Route::get('/ptip/lampiran/{id}/download', [KesekretariatanController::class, 'downloadLampiran'])->name('ptip.lampiran.download');
+    
+    // Routes untuk Lampiran Umum Keuangan
+    Route::get('/umum-keuangan/lampiran', [KesekretariatanController::class, 'showLampiran'])->name('umum-keuangan.lampiran.show');
+    Route::post('/umum-keuangan/lampiran', [KesekretariatanController::class, 'storeLampiran'])->name('umum-keuangan.lampiran.store');
+    Route::put('/umum-keuangan/lampiran/{id}', [KesekretariatanController::class, 'updateLampiran'])->name('umum-keuangan.lampiran.update');
+    Route::delete('/umum-keuangan/lampiran/{id}', [KesekretariatanController::class, 'destroyLampiran'])->name('umum-keuangan.lampiran.destroy');
+    Route::get('/umum-keuangan/lampiran/{id}/download', [KesekretariatanController::class, 'downloadLampiran'])->name('umum-keuangan.lampiran.download');
+    
+    // Routes untuk Lampiran Kepegawaian
+    Route::get('/kepegawaian/lampiran', [KesekretariatanController::class, 'showLampiran'])->name('kepegawaian.lampiran.show');
+    Route::post('/kepegawaian/lampiran', [KesekretariatanController::class, 'storeLampiran'])->name('kepegawaian.lampiran.store');
+    Route::put('/kepegawaian/lampiran/{id}', [KesekretariatanController::class, 'updateLampiran'])->name('kepegawaian.lampiran.update');
+    Route::delete('/kepegawaian/lampiran/{id}', [KesekretariatanController::class, 'destroyLampiran'])->name('kepegawaian.lampiran.destroy');
+    Route::get('/kepegawaian/lampiran/{id}/download', [KesekretariatanController::class, 'downloadLampiran'])->name('kepegawaian.lampiran.download');
 });
 
 // ==================== LAPORAN ROUTES ====================
 Route::middleware(['auth'])->group(function () {
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
-    Route::get('/laporan/cetak-pdf', [LaporanController::class, 'cetakPdf'])->name('laporan.cetak-pdf');
+    Route::get('/laporan/cetak-word', [LaporanController::class, 'cetakWord'])->name('laporan.cetak-word');
 });
 
 require __DIR__.'/auth.php';

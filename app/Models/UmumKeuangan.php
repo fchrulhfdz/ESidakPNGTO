@@ -1,4 +1,5 @@
 <?php
+// app/Models/UmumKeuangan.php
 
 namespace App\Models;
 
@@ -9,109 +10,41 @@ class UmumKeuangan extends Model
 {
     use HasFactory;
 
-    protected $table = 'umum_keuangan';
+    protected $table = 'umum_keuangans';
 
     protected $fillable = [
         'sasaran_strategis',
         'indikator_kinerja',
         'target',
-        'rumus',
         'label_input_1',
-        'label_input_2', 
         'input_1',
-        'input_2',
-        'realisasi',
-        'capaian',
         'bulan',
         'tahun',
     ];
 
     protected $casts = [
         'target' => 'decimal:2',
-        'realisasi' => 'decimal:2',
-        'capaian' => 'decimal:2',
         'bulan' => 'integer',
         'tahun' => 'integer',
         'input_1' => 'integer',
-        'input_2' => 'integer',
     ];
 
-    // Tambahkan mutator untuk handle nilai decimal
-    public function setTargetAttribute($value)
+    // Relasi ke lampiran
+    public function lampirans()
     {
-        $this->attributes['target'] = $this->cleanDecimalValue($value);
+        return $this->hasMany(UmumKeuanganLampiran::class);
     }
 
-    public function setRealisasiAttribute($value)
+    // Scope untuk filter periode
+    public function scopeFilterByPeriod($query, $bulan = null, $tahun = null)
     {
-        $this->attributes['realisasi'] = $this->cleanDecimalValue($value);
-    }
-
-    public function setCapaianAttribute($value)
-    {
-        $this->attributes['capaian'] = $this->cleanDecimalValue($value);
-    }
-
-    public function setInput1Attribute($value)
-    {
-        $this->attributes['input_1'] = $value ? (int) $value : 0;
-    }
-
-    public function setInput2Attribute($value)
-    {
-        $this->attributes['input_2'] = $value ? (int) $value : 0;
-    }
-
-    public function setBulanAttribute($value)
-    {
-        $this->attributes['bulan'] = $value ? (int) $value : null;
-    }
-
-    public function setTahunAttribute($value)
-    {
-        $this->attributes['tahun'] = $value ? (int) $value : null;
-    }
-
-    // Mutator untuk label input (jika diperlukan)
-    public function setLabelInput1Attribute($value)
-    {
-        $this->attributes['label_input_1'] = $value ?: 'Jumlah Proses Umum & Keuangan';
-    }
-
-    public function setLabelInput2Attribute($value)
-    {
-        $this->attributes['label_input_2'] = $value ?: 'Jumlah Proses Tepat Waktu';
-    }
-
-    // Accessor untuk label input (jika kosong, berikan nilai default)
-    public function getLabelInput1Attribute($value)
-    {
-        return $value ?: 'Jumlah Proses Umum & Keuangan';
-    }
-
-    public function getLabelInput2Attribute($value)
-    {
-        return $value ?: 'Jumlah Proses Tepat Waktu';
-    }
-
-    private function cleanDecimalValue($value)
-    {
-        if (is_null($value) || $value === '') {
-            return 0;
+        if ($bulan) {
+            $query->where('bulan', $bulan);
         }
-        
-        // Handle string dengan koma
-        if (is_string($value)) {
-            $value = str_replace(',', '.', $value);
+        if ($tahun) {
+            $query->where('tahun', $tahun);
         }
-        
-        return (float) $value;
-    }
-
-    // Scope untuk filter bulan dan tahun
-    public function scopeFilterByPeriod($query, $bulan, $tahun)
-    {
-        return $query->where('bulan', $bulan)->where('tahun', $tahun);
+        return $query;
     }
 
     // Accessor untuk nama bulan
@@ -135,14 +68,37 @@ class UmumKeuangan extends Model
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
     }
 
-    // Method untuk mendapatkan label input yang aman (tidak null)
-    public function getSafeLabelInput1()
+    // Accessor untuk cek apakah sudah ada input
+    public function getHasInputAttribute()
     {
-        return $this->label_input_1 ?: 'Jumlah Proses Umum & Keuangan';
+        return !is_null($this->input_1) && $this->input_1 > 0;
     }
 
-    public function getSafeLabelInput2()
+    // Scope untuk data yang belum diisi
+    public function scopeBelumDiisi($query)
     {
-        return $this->label_input_2 ?: 'Jumlah Proses Tepat Waktu';
+        return $query->whereNull('input_1')->orWhere('input_1', 0);
+    }
+
+    // Scope untuk data yang sudah diisi
+    public function scopeSudahDiisi($query)
+    {
+        return $query->whereNotNull('input_1')->where('input_1', '>', 0);
+    }
+
+    // Method untuk mendapatkan data berdasarkan sasaran strategis
+    public static function getBySasaranStrategis($sasaranStrategis, $bulan = null, $tahun = null)
+    {
+        $query = self::where('sasaran_strategis', $sasaranStrategis);
+        
+        if ($bulan) {
+            $query->where('bulan', $bulan);
+        }
+        
+        if ($tahun) {
+            $query->where('tahun', $tahun);
+        }
+        
+        return $query->get();
     }
 }

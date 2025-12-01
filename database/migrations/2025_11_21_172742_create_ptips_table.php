@@ -1,4 +1,5 @@
 <?php
+// database/migrations/2025_11_21_172742_create_ptips_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,31 +12,35 @@ return new class extends Migration {
             $table->id();
             $table->text('sasaran_strategis');
             $table->text('indikator_kinerja');
-
-            $table->string('target')->nullable();
-            $table->text('rumus')->nullable();
-
-            $table->string('input_1')->nullable();
-            $table->string('input_2')->nullable();
+            $table->decimal('target', 5, 2)->nullable();
             $table->string('label_input_1')->nullable();
-            $table->string('label_input_2')->nullable();
-            $table->string('realisasi')->nullable();
-            $table->string('capaian')->nullable();
-            
-            // Tambahkan kolom bulan dan tahun
-            $table->integer('bulan')->nullable(); // 1-12
-            $table->integer('tahun')->nullable(); // 2024, 2025, dst
-            
+            $table->integer('input_1')->nullable();
+            $table->integer('bulan')->nullable();
+            $table->integer('tahun')->nullable();
             $table->timestamps();
 
-            // Optional: tambahkan index untuk performa query
+            // Perbaiki index (tanpa kolom TEXT)
             $table->index(['bulan', 'tahun']);
             $table->index('tahun');
+            // Hapus index yang mengandung TEXT jika ada
+        });
+
+        Schema::create('ptip_lampirans', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('ptip_id')->constrained('ptips')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('nama_file');
+            $table->string('path');
+            $table->string('original_name');
+            $table->bigInteger('file_size');
+            $table->string('mime_type')->default('application/pdf');
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('ptip_lampirans');
         Schema::dropIfExists('ptips');
     }
 };

@@ -8,7 +8,7 @@
     <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-2xl font-semibold text-gray-900">PTIP</h1>
-            <p class="text-gray-600 mt-1">Kelola data PTIP dan capaian kinerja</p>
+            <p class="text-gray-600 mt-1">Kelola data PTIP dan lampiran</p>
         </div>
         @if(auth()->user()->isSuperAdmin())
             <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100">Super Admin</span>
@@ -23,14 +23,17 @@
             <button id="dataTab" class="tab-button active py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-white text-gray-900 shadow-sm">
                 Data PTIP
             </button>
+            @if(auth()->user()->isSuperAdmin())
+                <button id="sasaranTab" class="tab-button py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 text-gray-600 hover:text-gray-900">
+                    Sasaran Strategis
+                </button>
+            @endif
             <button id="inputTab" class="tab-button py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 text-gray-600 hover:text-gray-900">
                 Input Data
             </button>
-            @if(auth()->user()->isSuperAdmin())
-            <button id="sasaranTab" class="tab-button py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 text-gray-600 hover:text-gray-900">
-                Sasaran Strategis
+            <button id="lampiranTab" class="tab-button py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 text-gray-600 hover:text-gray-900">
+                Lampiran
             </button>
-            @endif
         </div>
     </div>
 
@@ -90,392 +93,364 @@
     @endif
 
     <!-- Tab Content: Data PTIP -->
-    <div id="dataContent" class="tab-content active">
-        <!-- Filter Data -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                    <select id="filterBulan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                        <option value="">Pilih Bulan</option>
-                        <option value="1">Januari</option>
-                        <option value="2">Februari</option>
-                        <option value="3">Maret</option>
-                        <option value="4">April</option>
-                        <option value="5">Mei</option>
-                        <option value="6">Juni</option>
-                        <option value="7">Juli</option>
-                        <option value="8">Agustus</option>
-                        <option value="9">September</option>
-                        <option value="10">Oktober</option>
-                        <option value="11">November</option>
-                        <option value="12">Desember</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                    <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                        <option value="">Pilih Tahun</option>
-                        @for($year = date('Y'); $year >= 2020; $year--)
-                            <option value="{{ $year }}">{{ $year }}</option>
-                        @endfor
-                    </select>
-                </div>
-                
-                <div class="flex items-end">
-                    <button id="cariBtn" class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
-                        Cari
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-900">Data PTIP</h2>
-                <div class="flex items-center space-x-4">
-                    <p class="text-gray-600 text-sm">Total: <span id="totalData">{{ $data->count() }}</span> data</p>
-                    <button id="toggleAll" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-150">Buka Semua</button>
-                </div>
+<div id="dataContent" class="tab-content active">
+    <!-- Filter Data -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                <select id="filterBulan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                    <option value="">Pilih Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
             </div>
             
-            @if($data->count() > 0)
-            <div class="divide-y divide-gray-100">
-                @foreach($data as $index => $item)
-                <div class="accordion-item group hover:bg-gray-50 transition-colors duration-200" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}" data-realisasi="{{ $item->realisasi }}" data-capaian="{{ $item->capaian }}">
-                    <button class="accordion-header w-full px-6 py-5 text-left">
-                        <div class="flex justify-between items-center">
-                            <div class="flex-1">
-                                <h3 class="font-medium text-gray-900 text-left">{{ $item->sasaran_strategis }}</h3>
-                                <p class="text-sm text-gray-500 mt-1 text-left">{{ $item->indikator_kinerja }}</p>
-                            </div>
-                            <div class="flex items-center space-x-4">
-                                <div class="text-right">
-                                    <div class="text-sm text-gray-500">Capaian</div>
-                                    @if($item->capaian)
-                                        @php
-                                            $capaian = is_numeric($item->capaian) ? floatval($item->capaian) : 0;
-                                            $bgColor = $capaian >= 100 ? 'bg-green-100 text-green-800' : 
-                                                      ($capaian >= 80 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
-                                        @endphp
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $bgColor }}">
-                                            {{ number_format($capaian, 2) }}%
-                                        </span>
-                                    @else
-                                        <span class="text-gray-400 text-sm">-</span>
-                                    @endif
-                                </div>
-                                <svg class="accordion-arrow h-5 w-5 text-gray-400 transform transition-transform duration-200 group-hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                    </button>
-                    <div class="accordion-content hidden px-6 pb-5">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-3">Detail Sasaran</h4>
-                                <dl class="space-y-3">
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Target</dt>
-                                        <dd class="text-sm text-gray-900 mt-1">
-                                            @if(is_numeric($item->target))
-                                                {{ number_format(floatval($item->target), 2) }}%
-                                            @else
-                                                {{ $item->target }}
-                                            @endif
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Rumus Perhitungan</dt>
-                                        <dd class="text-sm text-gray-900 mt-1">{{ $item->rumus }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Periode</dt>
-                                        <dd class="text-sm text-gray-900 mt-1">{{ \Carbon\Carbon::createFromDate($item->tahun, $item->bulan, 1)->translatedFormat('F Y') }}</dd>
-                                    </div>
-                                </dl>
-                            </div>
-                            
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-3">Data Input</h4>
-                                @if($item->input_1 !== null && $item->input_2 !== null)
-                                <dl class="space-y-3">
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">
-                                            {{ $item->getSafeLabelInput1() }}
-                                        </dt>
-                                        <dd class="text-sm font-medium text-gray-900 mt-1">{{ $item->input_1 }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">
-                                            {{ $item->getSafeLabelInput2() }}
-                                        </dt>
-                                        <dd class="text-sm font-medium text-gray-900 mt-1">{{ $item->input_2 }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-gray-500 font-medium">Realisasi</dt>
-                                        <dd class="text-sm mt-1">
-                                            @if($item->realisasi)
-                                                @php
-                                                    $realisasi = is_numeric($item->realisasi) ? floatval($item->realisasi) : 0;
-                                                @endphp
-                                                <span class="font-medium text-gray-900">{{ number_format($realisasi, 2) }}%</span>
-                                            @else
-                                                <span class="text-gray-400">-</span>
-                                            @endif
-                                        </dd>
-                                    </div>
-                                </dl>
-                                @else
-                                <p class="text-sm text-gray-500">Belum ada data input</p>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <div class="mt-5 pt-4 border-t border-gray-200 flex justify-between items-center">
-                            <div class="text-sm text-gray-500">
-                                Terakhir diupdate: {{ $item->updated_at ? $item->updated_at->format('d/m/Y H:i') : '-' }}
-                            </div>
-                            @if(auth()->user()->isSuperAdmin())
-                            <div class="flex space-x-3">
-                                <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-btn transition-colors duration-150" 
-                                        data-id="{{ $item->id }}"
-                                        data-sasaran="{{ $item->sasaran_strategis }}"
-                                        data-indikator="{{ $item->indikator_kinerja }}"
-                                        data-target="{{ $item->target }}"
-                                        data-rumus="{{ $item->rumus }}"
-                                        data-bulan="{{ $item->bulan }}"
-                                        data-tahun="{{ $item->tahun }}"
-                                        data-label-input-1="{{ $item->label_input_1 }}"
-                                        data-label-input-2="{{ $item->label_input_2 }}"
-                                        data-jenis="ptip">
-                                    Edit
-                                </button>
-                                <form action="{{ route('ptip.destroy', $item->id) }}" method="POST" class="inline delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="hidden" name="jenis" value="ptip">
-                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-150" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                        Hapus
-                                    </button>
-                                </form>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                @endforeach
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                    <option value="">Pilih Tahun</option>
+                    @php
+                        $currentYear = date('Y');
+                        $startYear = $currentYear - 5;
+                    @endphp
+                    @for($year = $currentYear; $year >= $startYear; $year--)
+                        <option value="{{ $year }}" @if($year == $currentYear) selected @endif>{{ $year }}</option>
+                    @endfor
+                </select>
             </div>
-            @else
-            <div class="text-center py-12">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data</h3>
-                <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan sasaran strategis baru.</p>
-            </div>
-            @endif
-        </div>
-
-        <!-- Tabel Ringkasan Realisasi dan Capaian -->
-        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden mt-6">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-900">Ringkasan Total Realisasi dan Capaian</h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-auto">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Realisasi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Capaian</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200" id="ringkasanTableBody">
-                        @php
-                            $totalRealisasi = 0;
-                            $totalCapaian = 0;
-                            $count = 0;
-                        @endphp
-                        @foreach($data as $item)
-                            @php
-                                $realisasi = is_numeric($item->realisasi) ? floatval($item->realisasi) : 0;
-                                $capaian = is_numeric($item->capaian) ? floatval($item->capaian) : 0;
-                                $totalRealisasi += $realisasi;
-                                $totalCapaian += $capaian;
-                                $count++;
-                            @endphp
-                        @endforeach
-                        <tr class="bg-gray-50 font-semibold">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ number_format($totalRealisasi, 2) }}%
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $avgCapaian = $count > 0 ? $totalCapaian / $count : 0;
-                                    $bgColor = $avgCapaian >= 100 ? 'bg-green-100 text-green-800' : 
-                                              ($avgCapaian >= 80 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $bgColor }}">
-                                    {{ number_format($avgCapaian, 2) }}%
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            
+            <div class="flex items-end">
+                <button id="cariBtn" class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
+                    Cari
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Tab Content: Input Data -->
-    <div id="inputContent" class="tab-content hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-900">Data PTIP</h2>
+            <div class="flex items-center space-x-4">
+                <p class="text-gray-600 text-sm">Total: <span id="totalData">{{ $data->count() }}</span> data</p>
+                <button id="toggleAll" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-150">Buka Semua</button>
+            </div>
+        </div>
+        
+        @if($data->count() > 0)
+        <div class="divide-y divide-gray-100" id="dataContainer">
+            @foreach($data as $index => $item)
+            <div class="accordion-item group hover:bg-gray-50 transition-colors duration-200" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}">
+                <button class="accordion-header w-full px-6 py-5 text-left">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-900 text-left">{{ $item->sasaran_strategis }}</h3>
+                            <p class="text-sm text-gray-500 mt-1 text-left">{{ $item->indikator_kinerja }}</p>
+                            <div class="flex items-center mt-2 space-x-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ $item->nama_bulan }} {{ $item->tahun }}
+                                </span>
+                                <span class="text-xs text-gray-500">Target: {{ number_format($item->target, 2) }}%</span>
+                                @if($item->input_1 !== null)
+                                    <span class="text-xs text-gray-500">Input 1: {{ $item->input_1 }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <svg class="accordion-arrow h-5 w-5 text-gray-400 transform transition-transform duration-200 group-hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </button>
+                <div class="accordion-content hidden px-6 pb-5">
+                    <div class="mt-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Detail Data</h4>
+                        <dl class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <dt class="text-xs text-gray-500 font-medium">Data Input</dt>
+                                <dd class="text-sm text-gray-900 mt-1">{{ $item->label_input_1 }}</dd>
+                                <dd class="text-sm text-gray-900 mt-1 font-semibold">{{ $item->input_1 }}</dd>
+                            </div>
+                            
+                            <div>
+                                <dt class="text-xs text-gray-500 font-medium">Periode</dt>
+                                <dd class="text-sm text-gray-900 mt-1">{{ \Carbon\Carbon::createFromDate($item->tahun, $item->bulan, 1)->translatedFormat('F Y') }}</dd>
+                            </div>
+                            
+                            <div>
+                                <dt class="text-xs text-gray-500 font-medium">Status</dt>
+                                <dd class="text-sm text-gray-900 mt-1">
+                                    @if($item->input_1 !== null)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Sudah diisi
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Belum diisi
+                                        </span>
+                                    @endif
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-t border-gray-200 flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                            Terakhir diupdate: {{ $item->updated_at ? $item->updated_at->format('d/m/Y H:i') : '-' }}
+                        </div>
+                        @if(auth()->user()->isSuperAdmin())
+                        <div class="flex space-x-3">
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-btn transition-colors duration-150" 
+                                    data-id="{{ $item->id }}"
+                                    data-sasaran="{{ $item->sasaran_strategis }}"
+                                    data-indikator="{{ $item->indikator_kinerja }}"
+                                    data-target="{{ $item->target }}"
+                                    data-label-input-1="{{ $item->label_input_1 }}"
+                                    data-input-1="{{ $item->input_1 }}"
+                                    data-bulan="{{ $item->bulan }}"
+                                    data-tahun="{{ $item->tahun }}"
+                                    data-jenis="ptip">
+                                Edit
+                            </button>
+                            <form action="{{ route('ptip.destroy', $item->id) }}" method="POST" class="inline delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-150" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                        @elseif(!$item->has_input)
+                        <div class="flex space-x-3">
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-btn transition-colors duration-150" 
+                                    data-id="{{ $item->id }}"
+                                    data-input-1="{{ $item->input_1 }}"
+                                    data-jenis="ptip">
+                                Isi Data
+                            </button>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @else
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data</h3>
+            <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan sasaran strategis baru.</p>
+        </div>
+        @endif
+    </div>
+</div>
+
+    <!-- Tab Content: Sasaran Strategis (Super Admin Only) -->
+    @if(auth()->user()->isSuperAdmin())
+    <div id="sasaranContent" class="tab-content hidden">
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-6">Input Data Perhitungan</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold text-gray-900">Tambah Sasaran Strategis Baru</h2>
+            </div>
             
-            <form id="formInputData" action="{{ route('store.ptip') }}" method="POST">
+            <form action="{{ route('store.ptip') }}" method="POST" id="formTambahSasaran">
                 @csrf
                 <input type="hidden" name="jenis" value="ptip">
-                <input type="hidden" name="sasaran_strategis" id="sasaran_hidden" value="{{ old('sasaran_strategis') }}">
-                <input type="hidden" name="indikator_kinerja" id="indikator_hidden" value="{{ old('indikator_kinerja') }}">
-                <input type="hidden" name="target" id="target_hidden" value="{{ old('target') }}">
-                <input type="hidden" name="rumus" id="rumus_hidden" value="{{ old('rumus') }}">
-                <input type="hidden" name="bulan" id="bulan_hidden" value="{{ old('bulan') }}">
-                <input type="hidden" name="tahun" id="tahun_hidden" value="{{ old('tahun') }}">
-                <!-- TAMBAHAN: Hidden field untuk label input -->
-                <input type="hidden" name="label_input_1" id="label_input_1_hidden" value="{{ old('label_input_1') }}">
-                <input type="hidden" name="label_input_2" id="label_input_2_hidden" value="{{ old('label_input_2') }}">
-
+                
                 <div class="space-y-6">
                     <div>
-                        <!-- DROPDOWN BULAN -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                            <select name="bulan" id="bulan" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Bulan</option>
-                                <option value="1" {{ old('bulan') == '1' ? 'selected' : '' }}>Januari</option>
-                                <option value="2" {{ old('bulan') == '2' ? 'selected' : '' }}>Februari</option>
-                                <option value="3" {{ old('bulan') == '3' ? 'selected' : '' }}>Maret</option>
-                                <option value="4" {{ old('bulan') == '4' ? 'selected' : '' }}>April</option>
-                                <option value="5" {{ old('bulan') == '5' ? 'selected' : '' }}>Mei</option>
-                                <option value="6" {{ old('bulan') == '6' ? 'selected' : '' }}>Juni</option>
-                                <option value="7" {{ old('bulan') == '7' ? 'selected' : '' }}>Juli</option>
-                                <option value="8" {{ old('bulan') == '8' ? 'selected' : '' }}>Agustus</option>
-                                <option value="9" {{ old('bulan') == '9' ? 'selected' : '' }}>September</option>
-                                <option value="10" {{ old('bulan') == '10' ? 'selected' : '' }}>Oktober</option>
-                                <option value="11" {{ old('bulan') == '11' ? 'selected' : '' }}>November</option>
-                                <option value="12" {{ old('bulan') == '12' ? 'selected' : '' }}>Desember</option>
-                            </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                        <input type="text" name="sasaran_strategis" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('sasaran_strategis') }}"
+                               placeholder="Masukkan sasaran strategis">
+                        @error('sasaran_strategis')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                        <input type="text" name="indikator_kinerja" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('indikator_kinerja') }}"
+                               placeholder="Masukkan indikator kinerja">
+                        @error('indikator_kinerja')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
+                            <input type="number" name="target" step="0.01" required min="0" max="100"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                                   value="{{ old('target') }}"
+                                   placeholder="0.00">
+                            @error('target')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                         
-                        <!-- INPUT TAHUN -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                            <input type="number" name="tahun" id="tahun" required min="2000" max="2100"
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
+                            <input type="text" name="label_input_1" required
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('tahun', date('Y')) }}">
-                        </div>
-
-                        <!-- DROPDOWN SASARAN STRATEGIS -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                            <select id="pilihSasaran" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Sasaran Strategis</option>
-                                @foreach($data as $item)
-                                    <option value="{{ $item->id }}" 
-                                            data-sasaran="{{ $item->sasaran_strategis }}"
-                                            data-indikator="{{ $item->indikator_kinerja }}"
-                                            data-target="{{ $item->target }}"
-                                            data-rumus="{{ $item->rumus }}"
-                                            data-bulan="{{ $item->bulan }}"
-                                            data-tahun="{{ $item->tahun }}"
-                                            data-label-input-1="{{ $item->label_input_1 }}"
-                                            data-label-input-2="{{ $item->label_input_2 }}"
-                                            @if(old('sasaran_strategis') == $item->sasaran_strategis) selected @endif>
-                                        {{ Str::limit($item->sasaran_strategis, 50) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- DROPDOWN INDIKATOR KINERJA -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                            <select id="pilihIndikator" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Indikator Kinerja</option>
-                                @foreach($data as $item)
-                                    <option value="{{ $item->id }}" 
-                                            data-sasaran="{{ $item->sasaran_strategis }}"
-                                            data-indikator="{{ $item->indikator_kinerja }}"
-                                            data-target="{{ $item->target }}"
-                                            data-rumus="{{ $item->rumus }}"
-                                            data-bulan="{{ $item->bulan }}"
-                                            data-tahun="{{ $item->tahun }}"
-                                            data-label-input-1="{{ $item->label_input_1 }}"
-                                            data-label-input-2="{{ $item->label_input_2 }}"
-                                            @if(old('indikator_kinerja') == $item->indikator_kinerja) selected @endif>
-                                        {{ Str::limit($item->indikator_kinerja, 50) }}
-                                    </option>
-                                @endforeach
-                            </select>
+                                   value="{{ old('label_input_1') }}"
+                                   placeholder="Contoh: Jumlah Kegiatan PTIP">
+                            @error('label_input_1')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_1">
-                                Label input 1
-                            </label>
-                            <input type="number" name="input_1" id="input_1" required min="0"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('input_1') }}">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                            <select name="bulan" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Bulan</option>
+                                @for ($i = 1; $i <= 12; $i++)
+                                    <option value="{{ $i }}" @if(old('bulan') == $i) selected @endif>
+                                        {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                                    </option>
+                                @endfor
+                            </select>
+                            @error('bulan')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_2">
-                                Label input 2
-                            </label>
-                            <input type="number" name="input_2" id="input_2" required min="0"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                            <input type="number" name="tahun" required min="2020"
                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                   value="{{ old('input_2') }}">
+                                   value="{{ old('tahun', date('Y')) }}"
+                                   placeholder="2025">
+                            @error('tahun')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <h3 class="text-sm font-medium text-blue-800 mb-3">Hasil Perhitungan</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" 
+                                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Simpan Sasaran Strategis
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    <!-- Tab Content: Input Data (Untuk Admin Biasa dan Super Admin) -->
+    <div id="inputContent" class="tab-content hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6">Input Data PTIP</h2>
+            
+            <form action="{{ route('store.ptip') }}" method="POST">
+                @csrf
+                <input type="hidden" name="jenis" value="ptip">
+                
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                            <select name="bulan" id="input_bulan" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Bulan</option>
+                                @for ($i = 1; $i <= 12; $i++)
+                                    <option value="{{ $i }}" {{ old('bulan') == $i ? 'selected' : '' }}>
+                                        {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                                    </option>
+                                @endfor
+                            </select>
+                            @error('bulan')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                            <input type="number" name="tahun" id="input_tahun" required min="2000" max="2100"
+                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                                   value="{{ old('tahun', date('Y')) }}">
+                            @error('tahun')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Form untuk Sasaran Strategis yang ada -->
+                    <div id="existing_sasaran_form">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                            <select name="ptip_id" id="ptipSelect" required
+                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                                <option value="">Pilih Sasaran Strategis</option>
+                                @foreach($data->unique('sasaran_strategis') as $item)
+                                    <option value="{{ $item->id }}" 
+                                            data-indikator="{{ $item->indikator_kinerja }}"
+                                            data-target="{{ $item->target }}"
+                                            data-label="{{ $item->label_input_1 }}"
+                                            {{ old('ptip_id') == $item->id ? 'selected' : '' }}>
+                                        {{ $item->sasaran_strategis }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('ptip_id')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                             <div>
-                                <label class="block text-xs text-blue-700 mb-1 font-medium">Realisasi</label>
-                                <input type="text" id="realisasi" readonly
-                                       class="w-full px-3 py-2.5 border border-blue-300 rounded-lg bg-white text-center font-semibold text-blue-800"
-                                       value="{{ old('realisasi') }}">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                                <input type="text" id="indikatorDisplay" readonly
+                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
                             </div>
                             
                             <div>
-                                <label class="block text-xs text-blue-700 mb-1 font-medium">Capaian</label>
-                                <input type="text" id="capaian" readonly
-                                       class="w-full px-3 py-2.5 border border-blue-300 rounded-lg bg-white text-center font-semibold text-blue-800"
-                                       value="{{ old('capaian') }}">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Target</label>
+                                <input type="text" id="targetDisplay" readonly
+                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center pt-2">
-                        <button type="button" id="hitungBtn" 
+                    <!-- Input untuk nilai -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span id="label_input_1_display">Label Input 1</span>
+                        </label>
+                        <input type="number" name="input_1" id="input_1" required min="0"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                               value="{{ old('input_1') }}"
+                               placeholder="Masukkan nilai">
+                        @error('input_1')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" 
                                 class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                            Hitung
-                        </button>
-                        
-                        <button type="submit" id="submitBtn" disabled
-                                class="bg-gray-300 text-gray-500 px-6 py-2.5 rounded-lg transition duration-200 flex items-center font-medium cursor-not-allowed">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
@@ -487,151 +462,180 @@
         </div>
     </div>
 
-    <!-- Tab Content: Sasaran Strategis (Super Admin Only) -->
-@if(auth()->user()->isSuperAdmin())
-<div id="sasaranContent" class="tab-content hidden">
-    <div class="bg-white rounded-2xl border border-gray-200 p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-lg font-semibold text-gray-900">Tambah Sasaran Strategis Baru</h2>
-            <button id="infoSasaran" class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </button>
-        </div>
-        
-        <form action="{{ route('store.ptip') }}" method="POST" id="formTambahSasaran">
-            @csrf
-            <input type="hidden" name="jenis" value="ptip">
+    <!-- Tab Content: Lampiran PDF -->
+    <div id="lampiranContent" class="tab-content hidden">
+        <!-- Form Upload Lampiran -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6">Upload Lampiran PDF</h2>
             
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                    <input type="text" name="sasaran_strategis" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                           value="{{ old('sasaran_strategis') }}"
-                           placeholder="Masukkan sasaran strategis">
-                    @error('sasaran_strategis')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                    <input type="text" name="indikator_kinerja" required
-                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                           value="{{ old('indikator_kinerja') }}"
-                           placeholder="Masukkan indikator kinerja">
-                    @error('indikator_kinerja')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
-                        <input type="number" name="target" step="0.01" required min="0" max="100"
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('target') }}"
-                               placeholder="0.00">
-                        @error('target')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
+            <form id="uploadLampiranForm" enctype="multipart/form-data">
+                @csrf
+                <div class="space-y-6">
+                    <!-- Filter untuk Data PTIP -->
+                    <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Filter Data PTIP</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                                <select id="lampiranFilterBulan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg">
+                                    <option value="">Semua Bulan</option>
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Maret</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Juni</option>
+                                    <option value="7">Juli</option>
+                                    <option value="8">Agustus</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                                <select id="lampiranFilterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $currentYear = date('Y');
+                                        $startYear = $currentYear - 5;
+                                    @endphp
+                                    @for($year = $currentYear; $year >= $startYear; $year--)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-end">
+                                <button type="button" id="filterLampiranBtn" class="w-full bg-gray-600 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition duration-200 font-medium">
+                                    Filter
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
-                        <input type="text" name="rumus" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('rumus') }}"
-                               placeholder="Contoh: (Jumlah Tepat Waktu / Jumlah Diselesaikan) × 100%">
-                        @error('rumus')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
-
-                <!-- TAMBAHAN: Input Label untuk Input 1 dan Input 2 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
-                        <input type="text" name="label_input_1" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('label_input_1') }}"
-                               placeholder="Contoh: Jumlah Kegiatan PTIP">
-                        @error('label_input_1')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 2</label>
-                        <input type="text" name="label_input_2" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('label_input_2') }}"
-                               placeholder="Contoh: Jumlah Kegiatan Tepat Waktu">
-                        @error('label_input_2')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                        <select name="bulan" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Data PTIP</label>
+                        <select name="ptip_id" id="lampiranPtipSelect" required
                                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                            <option value="">Pilih Bulan</option>
-                            <option value="1" @if(old('bulan') == '1') selected @endif>Januari</option>
-                            <option value="2" @if(old('bulan') == '2') selected @endif>Februari</option>
-                            <option value="3" @if(old('bulan') == '3') selected @endif>Maret</option>
-                            <option value="4" @if(old('bulan') == '4') selected @endif>April</option>
-                            <option value="5" @if(old('bulan') == '5') selected @endif>Mei</option>
-                            <option value="6" @if(old('bulan') == '6') selected @endif>Juni</option>
-                            <option value="7" @if(old('bulan') == '7') selected @endif>Juli</option>
-                            <option value="8" @if(old('bulan') == '8') selected @endif>Agustus</option>
-                            <option value="9" @if(old('bulan') == '9') selected @endif>September</option>
-                            <option value="10" @if(old('bulan') == '10') selected @endif>Oktober</option>
-                            <option value="11" @if(old('bulan') == '11') selected @endif>November</option>
-                            <option value="12" @if(old('bulan') == '12') selected @endif>Desember</option>
+                            <option value="">Pilih Data PTIP</option>
+                            @foreach($data as $item)
+                                <option value="{{ $item->id }}" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}">
+                                    {{ $item->sasaran_strategis }} ({{ $item->nama_bulan }} {{ $item->tahun }})
+                                </option>
+                            @endforeach
                         </select>
-                        @error('bulan')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                        <input type="number" name="tahun" required min="2020"
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('tahun', date('Y')) }}"
-                               placeholder="2025">
-                        @error('tahun')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
+                        <label class="block text-sm font-medium text-gray-700 mb-2">File PDF</label>
+                        <input type="file" name="lampiran" id="lampiranFile" accept=".pdf" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                        <p class="text-xs text-gray-500 mt-1">Maksimal 5MB, format PDF</p>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" id="uploadBtn"
+                                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Upload Lampiran
+                        </button>
                     </div>
                 </div>
+            </form>
+        </div>
 
-                <div class="flex justify-end pt-2">
-                    <button type="submit" 
-                            class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center font-medium">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Simpan Sasaran Strategis
-                    </button>
+        <!-- Tabel Lampiran -->
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Daftar Lampiran PDF</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <select id="daftarFilterBulan" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-full">
+                                    <option value="">Semua Bulan</option>
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Maret</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Juni</option>
+                                    <option value="7">Juli</option>
+                                    <option value="8">Agustus</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select id="daftarFilterTahun" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-full">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $currentYear = date('Y');
+                                        $startYear = $currentYear - 5;
+                                    @endphp
+                                    @for($year = $currentYear; $year >= $startYear; $year--)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div>
+                                <button id="daftarFilterBtn" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 text-sm w-full">
+                                    Filter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </form>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama File</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sasaran Strategis</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Pengupload</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Upload</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ukuran</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lampiranTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data akan diisi via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="lampiranLoading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="text-gray-500 mt-2">Memuat data...</p>
+            </div>
+            
+            <div id="lampiranEmpty" class="text-center py-8 hidden">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada lampiran</h3>
+                <p class="mt-1 text-sm text-gray-500">Mulai dengan mengupload lampiran PDF.</p>
+            </div>
+        </div>
     </div>
 </div>
-@endif
 
-<!-- Modal Edit -->
+<!-- Modal Edit Data PTIP -->
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300 flex items-center justify-center p-4">
     <div class="relative bg-white rounded-2xl border border-gray-200 w-full max-w-2xl transform transition-all duration-300 scale-95">
         <div class="p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Data</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Data PTIP</h3>
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
@@ -639,6 +643,7 @@
                 <input type="hidden" name="id" id="edit_id">
                 
                 <div class="space-y-4 mb-4">
+                    @if(auth()->user()->isSuperAdmin())
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
                         <input type="text" name="sasaran_strategis" id="edit_sasaran" required
@@ -658,44 +663,28 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Rumus</label>
-                        <input type="text" name="rumus" id="edit_rumus" required
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
+                        <input type="text" name="label_input_1" id="edit_label_input_1" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    </div>
+                    @endif
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nilai Input 1</label>
+                        <input type="number" name="input_1" id="edit_input_1" required min="0"
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     </div>
 
-                    <!-- TAMBAHAN: Input Label untuk Input 1 dan Input 2 di Modal Edit -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
-                            <input type="text" name="label_input_1" id="edit_label_input_1" required
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 2</label>
-                            <input type="text" name="label_input_2" id="edit_label_input_2" required
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        </div>
-                    </div>
-
+                    @if(auth()->user()->isSuperAdmin())
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
                             <select name="bulan" id="edit_bulan" required
                                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                                 <option value="">Pilih Bulan</option>
-                                <option value="1">Januari</option>
-                                <option value="2">Februari</option>
-                                <option value="3">Maret</option>
-                                <option value="4">April</option>
-                                <option value="5">Mei</option>
-                                <option value="6">Juni</option>
-                                <option value="7">Juli</option>
-                                <option value="8">Agustus</option>
-                                <option value="9">September</option>
-                                <option value="10">Oktober</option>
-                                <option value="11">November</option>
-                                <option value="12">Desember</option>
+                                @for ($i = 1; $i <= 12; $i++)
+                                    <option value="{{ $i }}">{{ DateTime::createFromFormat('!m', $i)->format('F') }}</option>
+                                @endfor
                             </select>
                         </div>
                         
@@ -706,10 +695,44 @@
                                    value="{{ date('Y') }}">
                         </div>
                     </div>
+                    @endif
                 </div>
                 
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" id="closeModal" 
+                            class="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
+                        Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Lampiran -->
+<div id="editLampiranModal" class="fixed inset-0 bg-black bg-opacity-40 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300 flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-2xl border border-gray-200 w-full max-w-md transform transition-all duration-300 scale-95">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Nama Lampiran</h3>
+            <form id="editLampiranForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="edit_lampiran_id">
+                
+                <div class="space-y-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama File</label>
+                        <input type="text" name="original_name" id="edit_lampiran_nama" required
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="closeLampiranModal" 
                             class="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium">
                         Batal
                     </button>
@@ -749,6 +772,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tabId === 'dataTab') contentId = 'dataContent';
             else if (tabId === 'inputTab') contentId = 'inputContent';
             else if (tabId === 'sasaranTab') contentId = 'sasaranContent';
+            else if (tabId === 'lampiranTab') {
+                contentId = 'lampiranContent';
+                loadLampiranData();
+            }
             
             if (contentId) {
                 document.getElementById(contentId).classList.remove('hidden');
@@ -796,139 +823,71 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Filter Bulan dan Tahun
-    const filterBulan = document.getElementById('filterBulan');
-    const filterTahun = document.getElementById('filterTahun');
-    const cariBtn = document.getElementById('cariBtn');
-    const totalDataSpan = document.getElementById('totalData');
-
-    // Set current month and year as default
-    const now = new Date();
-    const currentMonth = String(now.getMonth() + 1);
-    const currentYear = String(now.getFullYear());
-
-    // Set nilai default filter ke bulan dan tahun saat ini
-    if (filterBulan) filterBulan.value = currentMonth;
-    if (filterTahun) filterTahun.value = currentYear;
-
-    // Filter data saat halaman dimuat
-    filterData();
-
-    if (cariBtn) {
-        cariBtn.addEventListener('click', function() {
-            filterData();
-        });
-    }
-
-    function filterData() {
-        const bulan = String(filterBulan?.value || '');
-        const tahun = String(filterTahun?.value || '');
-        
-        if (!bulan || !tahun) {
-            alert('Silahkan pilih bulan dan tahun terlebih dahulu');
-            return;
-        }
-        
-        const accordionItems = document.querySelectorAll('.accordion-item');
-        let visibleCount = 0;
-        
-        accordionItems.forEach(item => {
-            const itemBulan = String(item.getAttribute('data-bulan'));
-            const itemTahun = String(item.getAttribute('data-tahun'));
-            
-            if (itemBulan === bulan && itemTahun === tahun) {
-                item.style.display = '';
-                visibleCount++;
+    // Dynamic form fields for input data
+    const ptipSelect = document.getElementById('ptipSelect');
+    if (ptipSelect) {
+        ptipSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                document.getElementById('indikatorDisplay').value = selectedOption.getAttribute('data-indikator');
+                document.getElementById('targetDisplay').value = selectedOption.getAttribute('data-target') + '%';
+                document.getElementById('label_input_1_display').textContent = selectedOption.getAttribute('data-label');
             } else {
-                item.style.display = 'none';
+                document.getElementById('indikatorDisplay').value = '';
+                document.getElementById('targetDisplay').value = '';
+                document.getElementById('label_input_1_display').textContent = 'Label Input 1';
             }
         });
         
-        if (totalDataSpan) {
-            totalDataSpan.textContent = visibleCount;
+        if (ptipSelect.value) {
+            ptipSelect.dispatchEvent(new Event('change'));
         }
-        updateRingkasanTable(bulan, tahun);
-    }
-
-    function updateRingkasanTable(bulan, tahun) {
-        const accordionItems = document.querySelectorAll('.accordion-item');
-        const ringkasanBody = document.getElementById('ringkasanTableBody');
-        
-        if (!ringkasanBody) return;
-        
-        let totalRealisasi = 0;
-        let totalCapaian = 0;
-        let count = 0;
-        
-        accordionItems.forEach(item => {
-            if (item.style.display !== 'none') {
-                const realisasi = parseFloat(item.getAttribute('data-realisasi') || 0);
-                const capaian = parseFloat(item.getAttribute('data-capaian') || 0);
-                
-                totalRealisasi += realisasi;
-                totalCapaian += capaian;
-                count++;
-            }
-        });
-        
-        const avgRealisasi = count > 0 ? totalRealisasi / count : 0;
-        const avgCapaian = count > 0 ? totalCapaian / count : 0;
-        const avgCapaianColor = avgCapaian >= 100 ? 'bg-green-100 text-green-800' : 
-                               (avgCapaian >= 80 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800');
-        
-        const tableHtml = `
-            <tr class="bg-gray-50 font-semibold">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        ${avgRealisasi.toFixed(2)}%
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${avgCapaianColor}">
-                        ${avgCapaian.toFixed(2)}%
-                    </span>
-                </td>
-            </tr>
-        `;
-        
-        ringkasanBody.innerHTML = tableHtml;
     }
     
-    // Edit button functionality - DIPERBARUI DENGAN LABEL
+    // Edit button functionality
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
             const sasaran = this.getAttribute('data-sasaran');
             const indikator = this.getAttribute('data-indikator');
             const target = this.getAttribute('data-target');
-            const rumus = this.getAttribute('data-rumus');
+            const labelInput1 = this.getAttribute('data-label-input-1');
+            const input1 = this.getAttribute('data-input-1');
             const jenis = this.getAttribute('data-jenis');
             const bulan = this.getAttribute('data-bulan');
             const tahun = this.getAttribute('data-tahun');
-            const labelInput1 = this.getAttribute('data-label-input-1');
-            const labelInput2 = this.getAttribute('data-label-input-2');
+            const isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
             
             document.getElementById('edit_id').value = id;
-            document.getElementById('edit_sasaran').value = sasaran;
-            document.getElementById('edit_indikator').value = indikator;
-            document.getElementById('edit_target').value = target;
-            document.getElementById('edit_rumus').value = rumus;
-            document.getElementById('edit_jenis').value = jenis;
-            document.getElementById('edit_bulan').value = bulan;
-            document.getElementById('edit_tahun').value = tahun;
+            document.getElementById('edit_sasaran').value = sasaran || '';
+            document.getElementById('edit_indikator').value = indikator || '';
+            document.getElementById('edit_target').value = target || '';
             document.getElementById('edit_label_input_1').value = labelInput1 || '';
-            document.getElementById('edit_label_input_2').value = labelInput2 || '';
+            document.getElementById('edit_input_1').value = input1 || '';
+            document.getElementById('edit_jenis').value = jenis;
             
-            document.getElementById('editForm').action = `{{ url('ptip') }}/${id}`;
+            if (isSuperAdmin) {
+                document.getElementById('edit_bulan').value = bulan || '';
+                document.getElementById('edit_tahun').value = tahun || '';
+            }
+            
+            document.getElementById('editForm').action = `/ptip/${id}`;
             document.getElementById('editModal').classList.remove('hidden');
         });
     });
     
-    // Close modal
+    // Close modals
     const closeModalBtn = document.getElementById('closeModal');
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', function() {
             document.getElementById('editModal').classList.add('hidden');
+        });
+    }
+    
+    const closeLampiranModalBtn = document.getElementById('closeLampiranModal');
+    if (closeLampiranModalBtn) {
+        closeLampiranModalBtn.addEventListener('click', function() {
+            document.getElementById('editLampiranModal').classList.add('hidden');
         });
     }
     
@@ -942,374 +901,381 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Info tooltip for sasaran strategis
-    const infoBtn = document.getElementById('infoSasaran');
-    if (infoBtn) {
-        infoBtn.addEventListener('click', function() {
-            alert('Sasaran strategis adalah tujuan jangka panjang yang ingin dicapai. Indikator kinerja adalah ukuran untuk menilai pencapaian sasaran tersebut.');
+    const editLampiranModal = document.getElementById('editLampiranModal');
+    if (editLampiranModal) {
+        editLampiranModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                document.getElementById('editLampiranModal').classList.add('hidden');
+            }
         });
     }
     
-    // Form input data functionality - DIPERBARUI DENGAN LABEL DINAMIS
-    const pilihSasaran = document.getElementById('pilihSasaran');
-    const pilihIndikator = document.getElementById('pilihIndikator');
-    const sasaranHidden = document.getElementById('sasaran_hidden');
-    const indikatorHidden = document.getElementById('indikator_hidden');
-    const targetHidden = document.getElementById('target_hidden');
-    const rumusHidden = document.getElementById('rumus_hidden');
-    const bulanHidden = document.getElementById('bulan_hidden');
-    const tahunHidden = document.getElementById('tahun_hidden');
+    // ==================== FILTER DATA PTIP ====================
+    const filterBulan = document.getElementById('filterBulan');
+    const filterTahun = document.getElementById('filterTahun');
+    const cariBtn = document.getElementById('cariBtn');
     
-    // TAMBAHAN: Hidden field untuk label input
-    const labelInput1Hidden = document.getElementById('label_input_1_hidden');
-    const labelInput2Hidden = document.getElementById('label_input_2_hidden');
-    
-    // Elemen dropdown bulan dan input tahun yang terlihat
-    const bulanDropdown = document.getElementById('bulan');
-    const tahunInput = document.getElementById('tahun');
-    
-    // Elemen label untuk input 1 dan input 2
-    const labelInput1 = document.getElementById('label_input_1');
-    const labelInput2 = document.getElementById('label_input_2');
-    
-    // Fungsi untuk filter sasaran strategis berdasarkan bulan dan tahun
-    function filterSasaranStrategis() {
-        const selectedBulan = bulanDropdown?.value || '';
-        const selectedTahun = tahunInput?.value || '';
+    function filterDataPTIP() {
+        const bulan = filterBulan ? filterBulan.value : '';
+        const tahun = filterTahun ? filterTahun.value : '';
+        const items = document.querySelectorAll('#dataContainer .accordion-item');
+        let totalVisible = 0;
         
-        if (!pilihSasaran) return;
+        items.forEach(item => {
+            const itemBulan = item.getAttribute('data-bulan');
+            const itemTahun = item.getAttribute('data-tahun');
+            
+            const matchBulan = !bulan || bulan === itemBulan;
+            const matchTahun = !tahun || tahun === itemTahun;
+            
+            if (matchBulan && matchTahun) {
+                item.style.display = '';
+                totalVisible++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
         
-        // Loop melalui semua opsi sasaran strategis
-        const options = pilihSasaran.querySelectorAll('option');
+        // Update counter
+        document.getElementById('totalData').textContent = totalVisible;
+        
+        // Show message if no results
+        const dataContainer = document.getElementById('dataContainer');
+        if (totalVisible === 0 && dataContainer) {
+            if (!document.getElementById('noResultsMessage')) {
+                const noResults = document.createElement('div');
+                noResults.id = 'noResultsMessage';
+                noResults.className = 'text-center py-12';
+                noResults.innerHTML = `
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data ditemukan</h3>
+                    <p class="mt-1 text-sm text-gray-500">Coba filter dengan bulan atau tahun yang berbeda.</p>
+                `;
+                dataContainer.parentNode.insertBefore(noResults, dataContainer.nextSibling);
+            }
+        } else {
+            const noResults = document.getElementById('noResultsMessage');
+            if (noResults) {
+                noResults.remove();
+            }
+        }
+    }
+    
+    // Event listeners for filters
+    if (cariBtn) {
+        cariBtn.addEventListener('click', filterDataPTIP);
+    }
+    
+    // Initialize filter on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current month as default if not already set
+        if (filterBulan && !filterBulan.value) {
+            const currentMonth = new Date().getMonth() + 1;
+            filterBulan.value = currentMonth;
+        }
+        
+        // Apply initial filter
+        filterDataPTIP();
+    });
+    
+    // ==================== FILTER UPLOAD LAMPIRAN ====================
+    const lampiranFilterBulan = document.getElementById('lampiranFilterBulan');
+    const lampiranFilterTahun = document.getElementById('lampiranFilterTahun');
+    const filterLampiranBtn = document.getElementById('filterLampiranBtn');
+    const lampiranPtipSelect = document.getElementById('lampiranPtipSelect');
+    
+    function filterLampiranOptions() {
+        const selectedBulan = lampiranFilterBulan ? lampiranFilterBulan.value : '';
+        const selectedTahun = lampiranFilterTahun ? lampiranFilterTahun.value : '';
+        
         let hasVisibleOptions = false;
         
-        options.forEach(option => {
-            if (option.value === '') {
-                // Opsi placeholder, selalu tampilkan
-                option.style.display = '';
-                return;
-            }
+        Array.from(lampiranPtipSelect.options).forEach(option => {
+            if (option.value === '') return;
             
             const optionBulan = option.getAttribute('data-bulan');
             const optionTahun = option.getAttribute('data-tahun');
             
-            // Tampilkan hanya jika bulan dan tahun sesuai
-            if (optionBulan === selectedBulan && optionTahun === selectedTahun) {
+            const matchBulan = !selectedBulan || selectedBulan === optionBulan;
+            const matchTahun = !selectedTahun || selectedTahun === optionTahun;
+            
+            if (matchBulan && matchTahun) {
                 option.style.display = '';
+                option.disabled = false;
                 hasVisibleOptions = true;
             } else {
                 option.style.display = 'none';
+                option.disabled = true;
             }
         });
         
-        // Reset pilihan jika opsi yang dipilih tidak sesuai dengan filter
-        const selectedOption = pilihSasaran.options[pilihSasaran.selectedIndex];
+        // Reset selection jika opsi yang dipilih tidak sesuai filter
+        const selectedOption = lampiranPtipSelect.options[lampiranPtipSelect.selectedIndex];
         if (selectedOption && selectedOption.style.display === 'none') {
-            pilihSasaran.value = '';
-            resetFormFields();
+            lampiranPtipSelect.value = '';
         }
         
-        // Tampilkan pesan jika tidak ada opsi yang tersedia
-        showNoDataMessage(pilihSasaran, hasVisibleOptions, selectedBulan, selectedTahun, 'sasaran strategis');
+        // Tampilkan pesan jika tidak ada opsi
+        const filterMessage = document.getElementById('filterLampiranMessage');
+        if (!hasVisibleOptions && lampiranPtipSelect.options.length > 1) {
+            if (!filterMessage) {
+                const message = document.createElement('p');
+                message.id = 'filterLampiranMessage';
+                message.className = 'text-sm text-amber-600 mt-2';
+                message.textContent = 'Tidak ada data PTIP yang sesuai dengan filter yang dipilih.';
+                lampiranPtipSelect.parentNode.appendChild(message);
+            }
+        } else if (filterMessage) {
+            filterMessage.remove();
+        }
     }
     
-    // Fungsi untuk filter indikator kinerja berdasarkan bulan dan tahun
-    function filterIndikatorKinerja() {
-        const selectedBulan = bulanDropdown?.value || '';
-        const selectedTahun = tahunInput?.value || '';
+    if (filterLampiranBtn) {
+        filterLampiranBtn.addEventListener('click', filterLampiranOptions);
+    }
+    
+    // ==================== LAMPIRAN FUNCTIONALITY ====================
+    
+    let lampiranData = [];
+    
+    function formatFileSize(bytes) {
+        if (bytes >= 1073741824) {
+            return (bytes / 1073741824).toFixed(2) + ' GB';
+        } else if (bytes >= 1048576) {
+            return (bytes / 1048576).toFixed(2) + ' MB';
+        } else if (bytes >= 1024) {
+            return (bytes / 1024).toFixed(2) + ' KB';
+        } else {
+            return bytes + ' bytes';
+        }
+    }
+    
+    function loadLampiranData() {
+        const loading = document.getElementById('lampiranLoading');
+        const empty = document.getElementById('lampiranEmpty');
+        const tableBody = document.getElementById('lampiranTableBody');
+        const filterBulan = document.getElementById('daftarFilterBulan');
+        const filterTahun = document.getElementById('daftarFilterTahun');
         
-        if (!pilihIndikator) return;
+        loading.classList.remove('hidden');
+        empty.classList.add('hidden');
+        tableBody.innerHTML = '';
         
-        // Loop melalui semua opsi indikator kinerja
-        const options = pilihIndikator.querySelectorAll('option');
-        let hasVisibleOptions = false;
+        const bulan = filterBulan ? filterBulan.value : '';
+        const tahun = filterTahun ? filterTahun.value : '';
         
-        options.forEach(option => {
-            if (option.value === '') {
-                // Opsi placeholder, selalu tampilkan
-                option.style.display = '';
-                return;
+        // Build URL dengan query parameters
+        let url = '/ptip/lampiran';
+        const params = new URLSearchParams();
+        if (bulan) params.append('bulan', bulan);
+        if (tahun) params.append('tahun', tahun);
+        
+        const queryString = params.toString();
+        if (queryString) {
+            url += '?' + queryString;
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.add('hidden');
+                lampiranData = data;
+                
+                if (data.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                
+                tableBody.innerHTML = data.map(lampiran => {
+                    const isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
+                    const canEdit = isSuperAdmin;
+                    const canDelete = isSuperAdmin || {{ auth()->user()->id }} == lampiran.user_id;
+                    
+                    return `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${lampiran.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <a href="/ptip/lampiran/${lampiran.id}/download" 
+                                   class="text-blue-600 hover:text-blue-900 hover:underline"
+                                   target="_blank">
+                                    ${lampiran.original_name}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${lampiran.ptip ? lampiran.ptip.sasaran_strategis : '-'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${lampiran.ptip ? lampiran.ptip.nama_bulan + ' ' + lampiran.ptip.tahun : '-'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${lampiran.user ? lampiran.user.name : '-'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${new Date(lampiran.created_at).toLocaleDateString('id-ID', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${formatFileSize(lampiran.file_size)}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                ${canEdit ? `
+                                    <button class="text-blue-600 hover:text-blue-900 edit-lampiran-btn" 
+                                            data-id="${lampiran.id}" 
+                                            data-nama="${lampiran.original_name}">
+                                        Edit
+                                    </button>
+                                ` : ''}
+                                ${canDelete ? `
+                                    <button class="text-red-600 hover:text-red-900 ml-2 delete-lampiran-btn" 
+                                            data-id="${lampiran.id}">
+                                        Hapus
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                document.querySelectorAll('.edit-lampiran-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        const nama = this.getAttribute('data-nama');
+                        
+                        document.getElementById('edit_lampiran_id').value = id;
+                        document.getElementById('edit_lampiran_nama').value = nama;
+                        document.getElementById('editLampiranModal').classList.remove('hidden');
+                    });
+                });
+                
+                document.querySelectorAll('.delete-lampiran-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if (confirm('Apakah Anda yakin ingin menghapus lampiran ini?')) {
+                            deleteLampiran(id);
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error loading lampiran:', error);
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+            });
+    }
+    
+    const daftarFilterBtn = document.getElementById('daftarFilterBtn');
+    
+    if (daftarFilterBtn) {
+        daftarFilterBtn.addEventListener('click', loadLampiranData);
+    }
+    
+    const uploadForm = document.getElementById('uploadLampiranForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const uploadBtn = document.getElementById('uploadBtn');
+            const originalText = uploadBtn.innerHTML;
+            
+            uploadBtn.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Mengupload...';
+            uploadBtn.disabled = true;
+            
+            fetch('/ptip/lampiran', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Lampiran berhasil diupload!');
+                    uploadForm.reset();
+                    loadLampiranData();
+                } else {
+                    alert('Error: ' + (data.error || 'Gagal mengupload lampiran'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengupload lampiran');
+            })
+            .finally(() => {
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+            });
+        });
+    }
+    
+    const editLampiranForm = document.getElementById('editLampiranForm');
+    if (editLampiranForm) {
+        editLampiranForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit_lampiran_id').value;
+            const formData = new FormData(this);
+            
+            fetch(`/ptip/lampiran/${id}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'X-HTTP-Method-Override': 'PUT'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Lampiran berhasil diupdate!');
+                    document.getElementById('editLampiranModal').classList.add('hidden');
+                    loadLampiranData();
+                } else {
+                    alert('Error: ' + (data.error || 'Gagal mengupdate lampiran'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengupdate lampiran');
+            });
+        });
+    }
+    
+    function deleteLampiran(id) {
+        if (!confirm('Apakah Anda yakin ingin menghapus lampiran ini?')) return;
+        
+        fetch(`/ptip/lampiran/${id}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-HTTP-Method-Override': 'DELETE'
             }
-            
-            const optionBulan = option.getAttribute('data-bulan');
-            const optionTahun = option.getAttribute('data-tahun');
-            
-            // Tampilkan hanya jika bulan dan tahun sesuai
-            if (optionBulan === selectedBulan && optionTahun === selectedTahun) {
-                option.style.display = '';
-                hasVisibleOptions = true;
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lampiran berhasil dihapus!');
+                loadLampiranData();
             } else {
-                option.style.display = 'none';
+                alert('Error: ' + (data.error || 'Gagal menghapus lampiran'));
             }
-        });
-        
-        // Reset pilihan jika opsi yang dipilih tidak sesuai dengan filter
-        const selectedOption = pilihIndikator.options[pilihIndikator.selectedIndex];
-        if (selectedOption && selectedOption.style.display === 'none') {
-            pilihIndikator.value = '';
-            resetFormFields();
-        }
-        
-        // Tampilkan pesan jika tidak ada opsi yang tersedia
-        showNoDataMessage(pilihIndikator, hasVisibleOptions, selectedBulan, selectedTahun, 'indikator kinerja');
-    }
-    
-    // Fungsi untuk menampilkan pesan tidak ada data
-    function showNoDataMessage(selectElement, hasVisibleOptions, bulan, tahun, type) {
-        if (!hasVisibleOptions && bulan && tahun) {
-            // Tambahkan pesan sementara di dropdown
-            const existingMessage = selectElement.querySelector('.no-data-message');
-            if (!existingMessage) {
-                const messageOption = document.createElement('option');
-                messageOption.value = '';
-                messageOption.textContent = `Tidak ada ${type} untuk bulan dan tahun yang dipilih`;
-                messageOption.disabled = true;
-                messageOption.selected = true;
-                messageOption.classList.add('no-data-message');
-                selectElement.appendChild(messageOption);
-            }
-        } else {
-            // Hapus pesan jika ada
-            const existingMessage = selectElement.querySelector('.no-data-message');
-            if (existingMessage) {
-                existingMessage.remove();
-            }
-        }
-    }
-    
-    // Fungsi untuk reset semua field form
-    function resetFormFields() {
-        sasaranHidden.value = '';
-        indikatorHidden.value = '';
-        targetHidden.value = '';
-        rumusHidden.value = '';
-        bulanHidden.value = '';
-        tahunHidden.value = '';
-        
-        // TAMBAHAN: Reset hidden field untuk label
-        if (labelInput1Hidden) labelInput1Hidden.value = '';
-        if (labelInput2Hidden) labelInput2Hidden.value = '';
-        
-        // Reset label ke default
-        if (labelInput1) labelInput1.textContent = 'Label input 1';
-        if (labelInput2) labelInput2.textContent = 'Label input 2';
-        
-        // Reset tombol submit
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
-            submitBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-        }
-        
-        // Reset hasil perhitungan
-        const realisasiInput = document.getElementById('realisasi');
-        const capaianInput = document.getElementById('capaian');
-        if (realisasiInput) realisasiInput.value = '';
-        if (capaianInput) capaianInput.value = '';
-    }
-    
-    // Fungsi untuk mengisi form fields dari dropdown yang dipilih - DIPERBARUI DENGAN LABEL
-    function fillFormFields(selectedOption) {
-        if (selectedOption.value) {
-            sasaranHidden.value = selectedOption.getAttribute('data-sasaran');
-            indikatorHidden.value = selectedOption.getAttribute('data-indikator');
-            targetHidden.value = selectedOption.getAttribute('data-target');
-            rumusHidden.value = selectedOption.getAttribute('data-rumus');
-            
-            // Ambil label input dari data attribute
-            const labelInput1Value = selectedOption.getAttribute('data-label-input-1');
-            const labelInput2Value = selectedOption.getAttribute('data-label-input-2');
-            
-            // Update label di form input data
-            if (labelInput1 && labelInput1Value) {
-                labelInput1.textContent = labelInput1Value;
-            }
-            if (labelInput2 && labelInput2Value) {
-                labelInput2.textContent = labelInput2Value;
-            }
-            
-            // TAMBAHAN: Update hidden fields untuk label
-            if (labelInput1Hidden) labelInput1Hidden.value = labelInput1Value;
-            if (labelInput2Hidden) labelInput2Hidden.value = labelInput2Value;
-            
-            // Isi data bulan dan tahun dari data attribute
-            const dataBulan = selectedOption.getAttribute('data-bulan');
-            const dataTahun = selectedOption.getAttribute('data-tahun');
-            
-            bulanHidden.value = dataBulan;
-            tahunHidden.value = dataTahun;
-            
-            // Update dropdown bulan dan input tahun yang terlihat
-            if (bulanDropdown && dataBulan) {
-                bulanDropdown.value = dataBulan;
-            }
-            if (tahunInput && dataTahun) {
-                tahunInput.value = dataTahun;
-            }
-            
-            // Sync antara dropdown sasaran dan indikator
-            syncDropdowns(selectedOption);
-        } else {
-            resetFormFields();
-        }
-    }
-    
-    // Fungsi untuk sync antara dropdown sasaran dan indikator
-    function syncDropdowns(selectedOption) {
-        const selectedId = selectedOption.value;
-        const selectedType = selectedOption.parentElement.id;
-        
-        if (selectedType === 'pilihSasaran' && pilihIndikator) {
-            // Jika yang dipilih adalah sasaran, set indikator yang sesuai
-            pilihIndikator.value = selectedId;
-        } else if (selectedType === 'pilihIndikator' && pilihSasaran) {
-            // Jika yang dipilih adalah indikator, set sasaran yang sesuai
-            pilihSasaran.value = selectedId;
-        }
-    }
-    
-    // Panggil fungsi filter saat halaman dimuat
-    filterSasaranStrategis();
-    filterIndikatorKinerja();
-    
-    // Event listener untuk dropdown sasaran strategis
-    if (pilihSasaran) {
-        pilihSasaran.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            
-            // Skip jika ini adalah pesan "no data"
-            if (selectedOption.classList.contains('no-data-message')) {
-                return;
-            }
-            
-            fillFormFields(selectedOption);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus lampiran');
         });
     }
     
-    // Event listener untuk dropdown indikator kinerja
-    if (pilihIndikator) {
-        pilihIndikator.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            
-            // Skip jika ini adalah pesan "no data"
-            if (selectedOption.classList.contains('no-data-message')) {
-                return;
-            }
-            
-            fillFormFields(selectedOption);
-        });
-    }
-    
-    // Event listener untuk update hidden field ketika user mengubah bulan/tahun secara manual
-    if (bulanDropdown) {
-        bulanDropdown.addEventListener('change', function() {
-            bulanHidden.value = this.value;
-            // Filter ulang sasaran strategis dan indikator kinerja saat bulan berubah
-            filterSasaranStrategis();
-            filterIndikatorKinerja();
-        });
-    }
-    
-    if (tahunInput) {
-        tahunInput.addEventListener('input', function() {
-            tahunHidden.value = this.value;
-            // Filter ulang sasaran strategis dan indikator kinerja saat tahun berubah
-            filterSasaranStrategis();
-            filterIndikatorKinerja();
-        });
-    }
-    
-    // Hitung functionality dengan validasi bulan dan tahun
-    const hitungBtn = document.getElementById('hitungBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const input1 = document.getElementById('input_1');
-    const input2 = document.getElementById('input_2');
-    const realisasiInput = document.getElementById('realisasi');
-    const capaianInput = document.getElementById('capaian');
-    
-    if (hitungBtn) {
-        hitungBtn.addEventListener('click', function() {
-            const kegiatanPTIP = parseFloat(input1.value) || 0;
-            const kegiatanTepatWaktu = parseFloat(input2.value) || 0;
-            const target = parseFloat(targetHidden.value) || 0;
-            
-            // Validasi input wajib
-            if (kegiatanPTIP === 0) {
-                alert('Jumlah kegiatan PTIP tidak boleh 0');
-                return;
-            }
-            
-            // Validasi bulan dan tahun
-            if (!bulanHidden.value || !tahunHidden.value) {
-                alert('Silakan pilih bulan dan tahun terlebih dahulu');
-                return;
-            }
-            
-            // Validasi sasaran strategis
-            if (!sasaranHidden.value) {
-                alert('Silakan pilih sasaran strategis terlebih dahulu');
-                return;
-            }
-            
-            // Validasi indikator kinerja
-            if (!indikatorHidden.value) {
-                alert('Silakan pilih indikator kinerja terlebih dahulu');
-                return;
-            }
-            
-            // Hitung realisasi
-            const realisasi = (kegiatanTepatWaktu / kegiatanPTIP) * 100;
-            
-            // Hitung capaian (Realisasi / Target * 100)
-            const capaian = target > 0 ? (realisasi / target) * 100 : 0;
-            
-            realisasiInput.value = realisasi.toFixed(2) + '%';
-            capaianInput.value = capaian.toFixed(2) + '%';
-            
-            // Enable submit button
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-            submitBtn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'cursor-pointer');
-        });
-    }
-
-    // Form validation sebelum submit
-    const formInputData = document.getElementById('formInputData');
-    if (formInputData) {
-        formInputData.addEventListener('submit', function(e) {
-            // Validasi final sebelum submit
-            if (!bulanHidden.value || !tahunHidden.value) {
-                e.preventDefault();
-                alert('Bulan dan tahun harus diisi');
-                return;
-            }
-            
-            if (!sasaranHidden.value) {
-                e.preventDefault();
-                alert('Sasaran strategis harus dipilih');
-                return;
-            }
-            
-            if (!indikatorHidden.value) {
-                e.preventDefault();
-                alert('Indikator kinerja harus dipilih');
-                return;
-            }
-            
-            if (!input1.value || !input2.value) {
-                e.preventDefault();
-                alert('Data input kegiatan harus diisi');
-                return;
-            }
-            
-            // Pastikan realisasi dan capaian sudah dihitung
-            if (!realisasiInput.value || !capaianInput.value) {
-                e.preventDefault();
-                alert('Silakan klik tombol Hitung terlebih dahulu');
-                return;
-            }
-        });
+    if (document.getElementById('lampiranContent').classList.contains('active')) {
+        loadLampiranData();
     }
 });
 </script>
@@ -1332,21 +1298,42 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: rotate(180deg);
 }
 
-#editModal {
+#editModal, #editLampiranModal {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-#editModal:not(.hidden) {
+#editModal:not(.hidden), #editLampiranModal:not(.hidden) {
     opacity: 1;
 }
 
-#editModal .scale-95 {
+#editModal .scale-95, #editLampiranModal .scale-95 {
     transform: scale(0.95);
 }
 
-#editModal:not(.hidden) .scale-95 {
+#editModal:not(.hidden) .scale-95, #editLampiranModal:not(.hidden) .scale-95 {
     transform: scale(1);
+}
+
+.filter-container {
+    transition: all 0.3s ease;
+}
+
+.filter-container:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#cariBtn, #filterLampiranBtn, #daftarFilterBtn {
+    transition: all 0.3s ease;
+}
+
+#cariBtn:hover, #filterLampiranBtn:hover, #daftarFilterBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+}
+
+#cariBtn:active, #filterLampiranBtn:active, #daftarFilterBtn:active {
+    transform: translateY(0);
 }
 </style>
 @endsection
