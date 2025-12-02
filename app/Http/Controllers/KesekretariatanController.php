@@ -44,8 +44,15 @@ class KesekretariatanController extends Controller
                      ->orderBy('bulan', 'desc')
                      ->orderBy('created_at', 'desc')
                      ->get();
+        
+        // Ambil sasaran strategis unik untuk dropdown (hanya yang belum ada inputnya)
+        $sasaranStrategis = $model::whereNull('input_1')
+                                 ->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                                 ->distinct('sasaran_strategis')
+                                 ->orderBy('sasaran_strategis')
+                                 ->get();
 
-        return view("admin.kesekretariatan.{$jenis}", compact('data', 'jenis'));
+        return view("admin.kesekretariatan.{$jenis}", compact('data', 'jenis', 'sasaranStrategis'));
     }
 
     public function store(Request $request)
@@ -79,7 +86,7 @@ class KesekretariatanController extends Controller
                     'tahun' => 'required|integer|min:2000|max:2100',
                 ]);
 
-                // Buat array data untuk sasaran strategis baru
+                // SELALU BUAT DATA BARU untuk sasaran strategis (tidak perlu cek duplikat)
                 $dataArray = [
                     'sasaran_strategis' => $validated['sasaran_strategis'],
                     'indikator_kinerja' => $validated['indikator_kinerja'],
@@ -89,8 +96,28 @@ class KesekretariatanController extends Controller
                     'bulan' => $validated['bulan'],
                     'tahun' => $validated['tahun'],
                 ];
+
+                $modelMapping = [
+                    'ptip' => Ptip::class,
+                    'umum-keuangan' => UmumKeuangan::class,
+                    'kepegawaian' => Kepegawaian::class,
+                ];
+
+                if (!array_key_exists($jenis, $modelMapping)) {
+                    throw new \Exception('Jenis data tidak valid');
+                }
+
+                $model = $modelMapping[$jenis];
+                
+                // SELALU BUAT DATA BARU - tanpa pengecekan duplikat
+                $data = $model::create($dataArray);
+
+                DB::commit();
+
+                return redirect()->back()->with('success', 'Sasaran strategis berhasil ditambahkan! Anda dapat menambahkan sasaran strategis baru lainnya.');
+
             } else {
-                // Input Data (Admin Biasa atau Super Admin)
+                // Input Data (Admin Biasa atau Super Admin) - SELALU UPDATE JIKA SUDAH ADA
                 $validated = $request->validate([
                     'parent_id' => 'required|exists:' . $this->getTableName($jenis) . ',id',
                     'input_1' => 'required|integer|min:0',
@@ -101,47 +128,57 @@ class KesekretariatanController extends Controller
                 $parentModel = $this->getParentModel($jenis);
                 $parent = $parentModel::findOrFail($validated['parent_id']);
                 
-                $dataArray = [
-                    'sasaran_strategis' => $parent->sasaran_strategis,
-                    'indikator_kinerja' => $parent->indikator_kinerja,
-                    'target' => $parent->target,
-                    'label_input_1' => $parent->label_input_1,
-                    'input_1' => $validated['input_1'],
-                    'bulan' => $validated['bulan'],
-                    'tahun' => $validated['tahun'],
+                // Pastikan parent adalah template sasaran strategis (input_1 null)
+                if (!is_null($parent->input_1)) {
+                    return redirect()->back()->with('error', 'Data yang dipilih bukan template sasaran strategis.');
+                }
+                
+                // Cari data yang sudah ada untuk sasaran strategis ini di bulan dan tahun yang sama
+                $modelMapping = [
+                    'ptip' => Ptip::class,
+                    'umum-keuangan' => UmumKeuangan::class,
+                    'kepegawaian' => Kepegawaian::class,
                 ];
+
+                if (!array_key_exists($jenis, $modelMapping)) {
+                    throw new \Exception('Jenis data tidak valid');
+                }
+
+                $model = $modelMapping[$jenis];
+                
+                // Cari data yang sudah ada (baik yang sudah diisi maupun belum)
+                $existingData = $model::where('bulan', $validated['bulan'])
+                    ->where('tahun', $validated['tahun'])
+                    ->where('sasaran_strategis', $parent->sasaran_strategis)
+                    ->first();
+
+                if ($existingData) {
+                    // UPDATE data yang sudah ada
+                    $existingData->update([
+                        'input_1' => $validated['input_1'],
+                        'indikator_kinerja' => $parent->indikator_kinerja, // Update dari template jika ada perubahan
+                        'target' => $parent->target,
+                        'label_input_1' => $parent->label_input_1,
+                    ]);
+                    $data = $existingData;
+                } else {
+                    // Buat data baru jika benar-benar belum ada
+                    $dataArray = [
+                        'sasaran_strategis' => $parent->sasaran_strategis,
+                        'indikator_kinerja' => $parent->indikator_kinerja,
+                        'target' => $parent->target,
+                        'label_input_1' => $parent->label_input_1,
+                        'input_1' => $validated['input_1'],
+                        'bulan' => $validated['bulan'],
+                        'tahun' => $validated['tahun'],
+                    ];
+                    $data = $model::create($dataArray);
+                }
+
+                DB::commit();
+
+                return redirect()->back()->with('success', 'Data berhasil ' . ($existingData ? 'diupdate' : 'disimpan') . '!');
             }
-
-            $modelMapping = [
-                'ptip' => Ptip::class,
-                'umum-keuangan' => UmumKeuangan::class,
-                'kepegawaian' => Kepegawaian::class,
-            ];
-
-            if (!array_key_exists($jenis, $modelMapping)) {
-                throw new \Exception('Jenis data tidak valid');
-            }
-
-            $model = $modelMapping[$jenis];
-            
-            // Cek apakah data untuk bulan dan tahun ini sudah ada
-            $existingData = $model::where('bulan', $dataArray['bulan'])
-                ->where('tahun', $dataArray['tahun'])
-                ->where('sasaran_strategis', $dataArray['sasaran_strategis'])
-                ->first();
-
-            if ($existingData) {
-                // Update data yang sudah ada
-                $existingData->update($dataArray);
-                $data = $existingData;
-            } else {
-                // Buat data baru
-                $data = $model::create($dataArray);
-            }
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Data berhasil disimpan!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -599,5 +636,73 @@ class KesekretariatanController extends Controller
         $segments = explode('/', $path);
         
         return $segments[0] ?? null;
+    }
+
+    // Method API untuk mendapatkan sasaran strategis unik
+    public function getSasaranStrategis($jenis)
+    {
+        $modelMapping = [
+            'ptip' => Ptip::class,
+            'umum-keuangan' => UmumKeuangan::class,
+            'kepegawaian' => Kepegawaian::class,
+        ];
+
+        if (!array_key_exists($jenis, $modelMapping)) {
+            return response()->json([], 404);
+        }
+
+        $model = $modelMapping[$jenis];
+        $sasaranStrategis = $model::whereNull('input_1')
+                                 ->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                                 ->distinct('sasaran_strategis')
+                                 ->orderBy('sasaran_strategis')
+                                 ->get();
+
+        return response()->json($sasaranStrategis);
+    }
+
+    // Method baru untuk mendapatkan data berdasarkan indikator kinerja
+    public function getByIndikator($jenis, Request $request)
+    {
+        $modelMapping = [
+            'ptip' => Ptip::class,
+            'umum-keuangan' => UmumKeuangan::class,
+            'kepegawaian' => Kepegawaian::class,
+        ];
+
+        if (!array_key_exists($jenis, $modelMapping)) {
+            return response()->json([], 404);
+        }
+
+        $model = $modelMapping[$jenis];
+        $query = $model::query();
+        
+        if ($request->has('indikator')) {
+            $query->where('indikator_kinerja', 'like', '%' . $request->indikator . '%');
+        }
+        
+        if ($request->has('bulan')) {
+            $query->where('bulan', $request->bulan);
+        }
+        
+        if ($request->has('tahun')) {
+            $query->where('tahun', $request->tahun);
+        }
+        
+        $data = $query->orderBy('tahun', 'desc')
+                     ->orderBy('bulan', 'desc')
+                     ->get()
+                     ->map(function($item) {
+                         return [
+                             'id' => $item->id,
+                             'sasaran_strategis' => $item->sasaran_strategis,
+                             'indikator_kinerja' => $item->indikator_kinerja,
+                             'nama_bulan' => $item->nama_bulan,
+                             'tahun' => $item->tahun,
+                             'bulan' => $item->bulan,
+                         ];
+                     });
+
+        return response()->json($data);
     }
 }

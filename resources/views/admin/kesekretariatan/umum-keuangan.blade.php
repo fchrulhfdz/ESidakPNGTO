@@ -359,7 +359,7 @@
     </div>
     @endif
 
-    <!-- Tab Content: Input Data (Untuk Admin Biasa dan Super Admin) -->
+    <!-- Tab Content: Input Data -->
     <div id="inputContent" class="tab-content hidden">
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">Input Data Umum & Keuangan</h2>
@@ -397,20 +397,19 @@
                         </div>
                     </div>
 
-                    <!-- Form untuk Sasaran Strategis yang ada -->
                     <div id="existing_sasaran_form">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                            <select name="parent_id" id="parentSelect" required
+                            <select name="parent_id" id="umumKeuanganSelect" required
                                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                                 <option value="">Pilih Sasaran Strategis</option>
-                                @foreach($data->unique('sasaran_strategis') as $item)
-                                    <option value="{{ $item->id }}" 
-                                            data-indikator="{{ $item->indikator_kinerja }}"
-                                            data-target="{{ $item->target }}"
-                                            data-label="{{ $item->label_input_1 }}"
-                                            {{ old('parent_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->sasaran_strategis }}
+                                @foreach($sasaranStrategis as $sasaran)
+                                    <option value="{{ $sasaran->id }}" 
+                                            data-indikator="{{ $sasaran->indikator_kinerja }}"
+                                            data-target="{{ $sasaran->target }}"
+                                            data-label="{{ $sasaran->label_input_1 }}"
+                                            {{ old('parent_id') == $sasaran->id ? 'selected' : '' }}>
+                                        {{ $sasaran->sasaran_strategis }}
                                     </option>
                                 @endforeach
                             </select>
@@ -434,7 +433,6 @@
                         </div>
                     </div>
 
-                    <!-- Input untuk nilai -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             <span id="label_input_1_display">Label Input 1</span>
@@ -470,7 +468,6 @@
             
             <form id="uploadLampiranForm" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="jenis" value="umum-keuangan">
                 <div class="space-y-6">
                     <!-- Filter untuk Data Umum & Keuangan -->
                     <div class="bg-gray-50 rounded-xl p-4 mb-4">
@@ -509,6 +506,13 @@
                                 </select>
                             </div>
                             
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                                <input type="text" id="lampiranFilterIndikator" 
+                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
+                                       placeholder="Cari indikator kinerja...">
+                            </div>
+                            
                             <div class="flex items-end">
                                 <button type="button" id="filterLampiranBtn" class="w-full bg-gray-600 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition duration-200 font-medium">
                                     Filter
@@ -519,15 +523,22 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Data Umum & Keuangan</label>
-                        <select name="parent_id" id="lampiranParentSelect" required
+                        <select name="parent_id" id="lampiranUmumKeuanganSelect" required
                                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                             <option value="">Pilih Data Umum & Keuangan</option>
                             @foreach($data as $item)
-                                <option value="{{ $item->id }}" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}">
-                                    {{ $item->sasaran_strategis }} ({{ $item->nama_bulan }} {{ $item->tahun }})
+                                <option value="{{ $item->id }}" 
+                                        data-bulan="{{ $item->bulan }}" 
+                                        data-tahun="{{ $item->tahun }}"
+                                        data-indikator="{{ $item->indikator_kinerja }}"
+                                        data-sasaran="{{ $item->sasaran_strategis }}">
+                                    {{ $item->indikator_kinerja }} ({{ $item->nama_bulan }} {{ $item->tahun }})
                                 </option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="selectedSasaran">-</span>
+                        </p>
                     </div>
                     
                     <div>
@@ -602,6 +613,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama File</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indikator Kinerja</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sasaran Strategis</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Pengupload</th>
@@ -749,8 +761,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const jenis = 'umum-keuangan';
-    
     // Tab functionality
     const tabs = document.querySelectorAll('.tab-button');
     const contents = document.querySelectorAll('.tab-content');
@@ -777,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (tabId === 'sasaranTab') contentId = 'sasaranContent';
             else if (tabId === 'lampiranTab') {
                 contentId = 'lampiranContent';
-                loadLampiranData(jenis);
+                loadLampiranData();
             }
             
             if (contentId) {
@@ -827,9 +837,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Dynamic form fields for input data
-    const parentSelect = document.getElementById('parentSelect');
-    if (parentSelect) {
-        parentSelect.addEventListener('change', function() {
+    const umumKeuanganSelect = document.getElementById('umumKeuanganSelect');
+    if (umumKeuanganSelect) {
+        umumKeuanganSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             if (selectedOption.value) {
                 document.getElementById('indikatorDisplay').value = selectedOption.getAttribute('data-indikator');
@@ -842,8 +852,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        if (parentSelect.value) {
-            parentSelect.dispatchEvent(new Event('change'));
+        if (umumKeuanganSelect.value) {
+            umumKeuanganSelect.dispatchEvent(new Event('change'));
         }
     }
     
@@ -874,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('edit_tahun').value = tahun || '';
             }
             
-            document.getElementById('editForm').action = `/${jenis}/${id}`;
+            document.getElementById('editForm').action = `/umum-keuangan/${id}`;
             document.getElementById('editModal').classList.remove('hidden');
         });
     });
@@ -918,7 +928,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterTahun = document.getElementById('filterTahun');
     const cariBtn = document.getElementById('cariBtn');
     
-    function filterData() {
+    function filterDataUmumKeuangan() {
         const bulan = filterBulan ? filterBulan.value : '';
         const tahun = filterTahun ? filterTahun.value : '';
         const items = document.querySelectorAll('#dataContainer .accordion-item');
@@ -939,10 +949,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Update counter
         document.getElementById('totalData').textContent = totalVisible;
         
-        // Show message if no results
         const dataContainer = document.getElementById('dataContainer');
         if (totalVisible === 0 && dataContainer) {
             if (!document.getElementById('noResultsMessage')) {
@@ -966,45 +974,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Event listeners for filters
     if (cariBtn) {
-        cariBtn.addEventListener('click', filterData);
+        cariBtn.addEventListener('click', filterDataUmumKeuangan);
     }
     
     // Initialize filter on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Set current month as default if not already set
         if (filterBulan && !filterBulan.value) {
             const currentMonth = new Date().getMonth() + 1;
             filterBulan.value = currentMonth;
         }
         
-        // Apply initial filter
-        filterData();
+        filterDataUmumKeuangan();
     });
     
     // ==================== FILTER UPLOAD LAMPIRAN ====================
     const lampiranFilterBulan = document.getElementById('lampiranFilterBulan');
     const lampiranFilterTahun = document.getElementById('lampiranFilterTahun');
+    const lampiranFilterIndikator = document.getElementById('lampiranFilterIndikator');
     const filterLampiranBtn = document.getElementById('filterLampiranBtn');
-    const lampiranParentSelect = document.getElementById('lampiranParentSelect');
+    const lampiranUmumKeuanganSelect = document.getElementById('lampiranUmumKeuanganSelect');
     
     function filterLampiranOptions() {
         const selectedBulan = lampiranFilterBulan ? lampiranFilterBulan.value : '';
         const selectedTahun = lampiranFilterTahun ? lampiranFilterTahun.value : '';
+        const searchIndikator = lampiranFilterIndikator ? lampiranFilterIndikator.value.toLowerCase() : '';
         
         let hasVisibleOptions = false;
         
-        Array.from(lampiranParentSelect.options).forEach(option => {
+        Array.from(lampiranUmumKeuanganSelect.options).forEach(option => {
             if (option.value === '') return;
             
             const optionBulan = option.getAttribute('data-bulan');
             const optionTahun = option.getAttribute('data-tahun');
+            const optionIndikator = option.getAttribute('data-indikator')?.toLowerCase() || '';
+            const optionSasaran = option.getAttribute('data-sasaran');
             
             const matchBulan = !selectedBulan || selectedBulan === optionBulan;
             const matchTahun = !selectedTahun || selectedTahun === optionTahun;
+            const matchIndikator = !searchIndikator || optionIndikator.includes(searchIndikator) || 
+                                   optionSasaran.toLowerCase().includes(searchIndikator);
             
-            if (matchBulan && matchTahun) {
+            if (matchBulan && matchTahun && matchIndikator) {
                 option.style.display = '';
                 option.disabled = false;
                 hasVisibleOptions = true;
@@ -1014,29 +1025,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Reset selection jika opsi yang dipilih tidak sesuai filter
-        const selectedOption = lampiranParentSelect.options[lampiranParentSelect.selectedIndex];
+        const selectedOption = lampiranUmumKeuanganSelect.options[lampiranUmumKeuanganSelect.selectedIndex];
         if (selectedOption && selectedOption.style.display === 'none') {
-            lampiranParentSelect.value = '';
+            lampiranUmumKeuanganSelect.value = '';
+            document.getElementById('selectedSasaran').textContent = '-';
         }
         
-        // Tampilkan pesan jika tidak ada opsi
         const filterMessage = document.getElementById('filterLampiranMessage');
-        if (!hasVisibleOptions && lampiranParentSelect.options.length > 1) {
+        if (!hasVisibleOptions && lampiranUmumKeuanganSelect.options.length > 1) {
             if (!filterMessage) {
                 const message = document.createElement('p');
                 message.id = 'filterLampiranMessage';
                 message.className = 'text-sm text-amber-600 mt-2';
-                message.textContent = 'Tidak ada data yang sesuai dengan filter yang dipilih.';
-                lampiranParentSelect.parentNode.appendChild(message);
+                message.textContent = 'Tidak ada data Umum & Keuangan yang sesuai dengan filter yang dipilih.';
+                lampiranUmumKeuanganSelect.parentNode.appendChild(message);
             }
         } else if (filterMessage) {
             filterMessage.remove();
         }
     }
     
+    if (lampiranUmumKeuanganSelect) {
+        lampiranUmumKeuanganSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const sasaran = selectedOption.getAttribute('data-sasaran');
+                document.getElementById('selectedSasaran').textContent = 'Sasaran: ' + sasaran;
+            } else {
+                document.getElementById('selectedSasaran').textContent = '-';
+            }
+        });
+    }
+    
     if (filterLampiranBtn) {
         filterLampiranBtn.addEventListener('click', filterLampiranOptions);
+    }
+    
+    if (lampiranFilterIndikator) {
+        lampiranFilterIndikator.addEventListener('input', filterLampiranOptions);
     }
     
     // ==================== LAMPIRAN FUNCTIONALITY ====================
@@ -1055,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function loadLampiranData(jenis) {
+    function loadLampiranData() {
         const loading = document.getElementById('lampiranLoading');
         const empty = document.getElementById('lampiranEmpty');
         const tableBody = document.getElementById('lampiranTableBody');
@@ -1069,8 +1095,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const bulan = filterBulan ? filterBulan.value : '';
         const tahun = filterTahun ? filterTahun.value : '';
         
-        // Build URL dengan query parameters
-        let url = `/${jenis}/lampiran`;
+        let url = '/umum-keuangan/lampiran';
         const params = new URLSearchParams();
         if (bulan) params.append('bulan', bulan);
         if (tahun) params.append('tahun', tahun);
@@ -1095,23 +1120,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     const isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
                     const canEdit = isSuperAdmin;
                     const canDelete = isSuperAdmin || {{ auth()->user()->id }} == lampiran.user_id;
-                    const parentKey = jenis === 'ptip' ? 'ptip' : (jenis === 'umum-keuangan' ? 'umumKeuangan' : 'kepegawaian');
                     
                     return `
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${lampiran.id}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <a href="/${jenis}/lampiran/${lampiran.id}/download" 
+                                <a href="/umum-keuangan/lampiran/${lampiran.id}/download" 
                                    class="text-blue-600 hover:text-blue-900 hover:underline"
                                    target="_blank">
                                     ${lampiran.original_name}
                                 </a>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                ${lampiran[parentKey] ? lampiran[parentKey].sasaran_strategis : '-'}
+                                ${lampiran.umum_keuangan ? lampiran.umum_keuangan.indikator_kinerja : '-'}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                ${lampiran[parentKey] ? lampiran[parentKey].nama_bulan + ' ' + lampiran[parentKey].tahun : '-'}
+                                ${lampiran.umum_keuangan ? lampiran.umum_keuangan.sasaran_strategis : '-'}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${lampiran.umum_keuangan ? lampiran.umum_keuangan.nama_bulan + ' ' + lampiran.umum_keuangan.tahun : '-'}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 ${lampiran.user ? lampiran.user.name : '-'}
@@ -1162,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     btn.addEventListener('click', function() {
                         const id = this.getAttribute('data-id');
                         if (confirm('Apakah Anda yakin ingin menghapus lampiran ini?')) {
-                            deleteLampiran(jenis, id);
+                            deleteLampiran(id);
                         }
                     });
                 });
@@ -1177,9 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const daftarFilterBtn = document.getElementById('daftarFilterBtn');
     
     if (daftarFilterBtn) {
-        daftarFilterBtn.addEventListener('click', function() {
-            loadLampiranData(jenis);
-        });
+        daftarFilterBtn.addEventListener('click', loadLampiranData);
     }
     
     const uploadForm = document.getElementById('uploadLampiranForm');
@@ -1194,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadBtn.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Mengupload...';
             uploadBtn.disabled = true;
             
-            fetch(`/${jenis}/lampiran`, {
+            fetch('/umum-keuangan/lampiran', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -1206,7 +1231,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     alert('Lampiran berhasil diupload!');
                     uploadForm.reset();
-                    loadLampiranData(jenis);
+                    document.getElementById('selectedSasaran').textContent = '-';
+                    loadLampiranData();
                 } else {
                     alert('Error: ' + (data.error || 'Gagal mengupload lampiran'));
                 }
@@ -1230,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = document.getElementById('edit_lampiran_id').value;
             const formData = new FormData(this);
             
-            fetch(`/${jenis}/lampiran/${id}`, {
+            fetch(`/umum-keuangan/lampiran/${id}`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -1243,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     alert('Lampiran berhasil diupdate!');
                     document.getElementById('editLampiranModal').classList.add('hidden');
-                    loadLampiranData(jenis);
+                    loadLampiranData();
                 } else {
                     alert('Error: ' + (data.error || 'Gagal mengupdate lampiran'));
                 }
@@ -1255,10 +1281,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function deleteLampiran(jenis, id) {
+    function deleteLampiran(id) {
         if (!confirm('Apakah Anda yakin ingin menghapus lampiran ini?')) return;
         
-        fetch(`/${jenis}/lampiran/${id}`, {
+        fetch(`/umum-keuangan/lampiran/${id}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1269,7 +1295,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 alert('Lampiran berhasil dihapus!');
-                loadLampiranData(jenis);
+                loadLampiranData();
             } else {
                 alert('Error: ' + (data.error || 'Gagal menghapus lampiran'));
             }
@@ -1281,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (document.getElementById('lampiranContent').classList.contains('active')) {
-        loadLampiranData(jenis);
+        loadLampiranData();
     }
 });
 </script>

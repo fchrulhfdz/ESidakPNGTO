@@ -21,6 +21,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    // Atribut tambahan untuk evaluasi kerja
+    protected $appends = ['bagian_name'];
+
     public function isSuperAdmin()
     {
         return $this->role === 'super_admin';
@@ -44,7 +47,7 @@ class User extends Authenticatable
             'phi' => 'PHI',
             'hukum' => 'Hukum',
             'ptip' => 'PTIP',
-            'umum_keuangan' => 'Umum & Keuangan', // PERBAIKAN: underscore untuk database
+            'umum_keuangan' => 'Umum & Keuangan',
             'kepegawaian' => 'Kepegawaian',
         ];
 
@@ -63,10 +66,56 @@ class User extends Authenticatable
             'phi' => 'phi',
             'hukum' => 'hukum',
             'ptip' => 'ptip',
-            'umum_keuangan' => 'umum-keuangan', // PERBAIKAN: mapping ke route dengan dash
+            'umum_keuangan' => 'umum-keuangan',
             'kepegawaian' => 'kepegawaian'
         ];
 
         return $routeMapping[$this->role] ?? 'dashboard';
+    }
+
+    /**
+     * Relationship with EvaluasiKerja
+     */
+    public function evaluasiKerja()
+    {
+        return $this->hasMany(EvaluasiKerja::class, 'bagian', 'role');
+    }
+
+    /**
+     * Check if user can upload evaluasi kerja
+     * Sekarang semua user bisa upload
+     */
+    public function canUploadEvaluasiKerja()
+    {
+        return true; // Semua user yang login bisa upload
+    }
+
+    /**
+     * Check if user can delete evaluasi kerja
+     */
+    public function canDeleteEvaluasiKerja()
+    {
+        return $this->isSuperAdmin();
+    }
+
+    /**
+     * Get allowed bagian for evaluasi kerja
+     */
+    public function getAllowedBagianForEvaluasi()
+    {
+        if ($this->isSuperAdmin()) {
+            return [
+                'perdata' => 'Perdata',
+                'pidana' => 'Pidana',
+                'tipikor' => 'Tipikor',
+                'phi' => 'PHI',
+                'hukum' => 'Hukum',
+                'ptip' => 'PTIP',
+                'kepegawaian' => 'Kepegawaian',
+                'umum_keuangan' => 'Umum & Keuangan',
+            ];
+        }
+        
+        return [$this->role => $this->bagian_name];
     }
 }

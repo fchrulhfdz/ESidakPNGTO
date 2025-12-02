@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PerkaraController;
 use App\Http\Controllers\KesekretariatanController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\EvaluasiKerjaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -71,12 +72,28 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/kepegawaian/lampiran/{id}', [KesekretariatanController::class, 'updateLampiran'])->name('kepegawaian.lampiran.update');
     Route::delete('/kepegawaian/lampiran/{id}', [KesekretariatanController::class, 'destroyLampiran'])->name('kepegawaian.lampiran.destroy');
     Route::get('/kepegawaian/lampiran/{id}/download', [KesekretariatanController::class, 'downloadLampiran'])->name('kepegawaian.lampiran.download');
+    
+    // API Routes untuk mendapatkan sasaran strategis unik
+    Route::get('/api/sasaran-strategis/{jenis}', [KesekretariatanController::class, 'getSasaranStrategis'])
+         ->name('api.sasaran-strategis');
+    
+    // API untuk mendapatkan data berdasarkan indikator kinerja
+    Route::get('/api/{jenis}/by-indikator', [KesekretariatanController::class, 'getByIndikator'])
+         ->name('api.by-indikator');
 });
 
 // ==================== LAPORAN ROUTES ====================
 Route::middleware(['auth'])->group(function () {
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
     Route::get('/laporan/cetak-word', [LaporanController::class, 'cetakWord'])->name('laporan.cetak-word');
+});
+
+// ==================== EVALUASI KERJA ROUTES ====================
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/evaluasi-kerja', [EvaluasiKerjaController::class, 'index'])->name('evaluasi-kerja.index');
+    Route::post('/evaluasi-kerja', [EvaluasiKerjaController::class, 'store'])->name('evaluasi-kerja.store');
+    Route::get('/evaluasi-kerja/{id}/download', [EvaluasiKerjaController::class, 'download'])->name('evaluasi-kerja.download');
+    Route::delete('/evaluasi-kerja/{id}', [EvaluasiKerjaController::class, 'destroy'])->name('evaluasi-kerja.destroy');
 });
 
 require __DIR__.'/auth.php';

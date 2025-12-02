@@ -25,7 +25,7 @@ class Ptip extends Model
         'target' => 'decimal:2',
         'bulan' => 'integer',
         'tahun' => 'integer',
-        'input_1' => 'integer', // Ini akan auto-cast null ke 0
+        'input_1' => 'integer',
     ];
 
     public function lampirans()
@@ -63,4 +63,45 @@ class Ptip extends Model
     {
         return !is_null($this->input_1) && $this->input_1 > 0;
     }
-}   
+
+    // Scope untuk mendapatkan sasaran strategis unik
+    public function scopeUniqueSasaranStrategis($query)
+    {
+        return $query->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                    ->whereNull('input_1')
+                    ->groupBy('sasaran_strategis')
+                    ->orderBy('sasaran_strategis');
+    }
+
+    // Static method untuk mendapatkan semua sasaran strategis unik
+    public static function getUniqueSasaranStrategis()
+    {
+        return self::select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                  ->whereNull('input_1')
+                  ->distinct('sasaran_strategis')
+                  ->orderBy('sasaran_strategis')
+                  ->get();
+    }
+
+    // Method untuk mendapatkan template sasaran strategis (input_1 null)
+    public function isTemplate()
+    {
+        return is_null($this->input_1);
+    }
+
+    // Static method untuk mendapatkan data unik berdasarkan indikator kinerja
+    public static function getUniqueByIndikator()
+    {
+        return self::select('indikator_kinerja', 'id', 'sasaran_strategis', 'bulan', 'tahun')
+                  ->whereNotNull('input_1')
+                  ->distinct('indikator_kinerja')
+                  ->orderBy('indikator_kinerja')
+                  ->get();
+    }
+
+    // Scope untuk mencari berdasarkan indikator kinerja
+    public function scopeByIndikator($query, $indikator)
+    {
+        return $query->where('indikator_kinerja', 'like', '%' . $indikator . '%');
+    }
+}

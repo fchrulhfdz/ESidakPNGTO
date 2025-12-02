@@ -1,5 +1,4 @@
 <?php
-// app/Models/Kepegawaian.php
 
 namespace App\Models;
 
@@ -62,5 +61,41 @@ class Kepegawaian extends Model
     public function getHasInputAttribute()
     {
         return !is_null($this->input_1) && $this->input_1 > 0;
+    }
+
+    public function scopeUniqueSasaranStrategis($query)
+    {
+        return $query->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                    ->whereNull('input_1')
+                    ->groupBy('sasaran_strategis')
+                    ->orderBy('sasaran_strategis');
+    }
+
+    public static function getUniqueSasaranStrategis()
+    {
+        return self::select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                  ->whereNull('input_1')
+                  ->distinct('sasaran_strategis')
+                  ->orderBy('sasaran_strategis')
+                  ->get();
+    }
+
+    public function isTemplate()
+    {
+        return is_null($this->input_1);
+    }
+
+    public static function getUniqueByIndikator()
+    {
+        return self::select('indikator_kinerja', 'id', 'sasaran_strategis', 'bulan', 'tahun')
+                  ->whereNotNull('input_1')
+                  ->distinct('indikator_kinerja')
+                  ->orderBy('indikator_kinerja')
+                  ->get();
+    }
+
+    public function scopeByIndikator($query, $indikator)
+    {
+        return $query->where('indikator_kinerja', 'like', '%' . $indikator . '%');
     }
 }

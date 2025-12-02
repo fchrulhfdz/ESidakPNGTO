@@ -1,5 +1,4 @@
 <?php
-// app/Models/UmumKeuangan.php
 
 namespace App\Models;
 
@@ -29,25 +28,16 @@ class UmumKeuangan extends Model
         'input_1' => 'integer',
     ];
 
-    // Relasi ke lampiran
     public function lampirans()
     {
         return $this->hasMany(UmumKeuanganLampiran::class);
     }
 
-    // Scope untuk filter periode
-    public function scopeFilterByPeriod($query, $bulan = null, $tahun = null)
+    public function scopeFilterByPeriod($query, $bulan, $tahun)
     {
-        if ($bulan) {
-            $query->where('bulan', $bulan);
-        }
-        if ($tahun) {
-            $query->where('tahun', $tahun);
-        }
-        return $query;
+        return $query->where('bulan', $bulan)->where('tahun', $tahun);
     }
 
-    // Accessor untuk nama bulan
     public function getNamaBulanAttribute()
     {
         $bulan = [
@@ -68,37 +58,44 @@ class UmumKeuangan extends Model
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
     }
 
-    // Accessor untuk cek apakah sudah ada input
     public function getHasInputAttribute()
     {
         return !is_null($this->input_1) && $this->input_1 > 0;
     }
 
-    // Scope untuk data yang belum diisi
-    public function scopeBelumDiisi($query)
+    public function scopeUniqueSasaranStrategis($query)
     {
-        return $query->whereNull('input_1')->orWhere('input_1', 0);
+        return $query->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                    ->whereNull('input_1')
+                    ->groupBy('sasaran_strategis')
+                    ->orderBy('sasaran_strategis');
     }
 
-    // Scope untuk data yang sudah diisi
-    public function scopeSudahDiisi($query)
+    public static function getUniqueSasaranStrategis()
     {
-        return $query->whereNotNull('input_1')->where('input_1', '>', 0);
+        return self::select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
+                  ->whereNull('input_1')
+                  ->distinct('sasaran_strategis')
+                  ->orderBy('sasaran_strategis')
+                  ->get();
     }
 
-    // Method untuk mendapatkan data berdasarkan sasaran strategis
-    public static function getBySasaranStrategis($sasaranStrategis, $bulan = null, $tahun = null)
+    public function isTemplate()
     {
-        $query = self::where('sasaran_strategis', $sasaranStrategis);
-        
-        if ($bulan) {
-            $query->where('bulan', $bulan);
-        }
-        
-        if ($tahun) {
-            $query->where('tahun', $tahun);
-        }
-        
-        return $query->get();
+        return is_null($this->input_1);
+    }
+
+    public static function getUniqueByIndikator()
+    {
+        return self::select('indikator_kinerja', 'id', 'sasaran_strategis', 'bulan', 'tahun')
+                  ->whereNotNull('input_1')
+                  ->distinct('indikator_kinerja')
+                  ->orderBy('indikator_kinerja')
+                  ->get();
+    }
+
+    public function scopeByIndikator($query, $indikator)
+    {
+        return $query->where('indikator_kinerja', 'like', '%' . $indikator . '%');
     }
 }

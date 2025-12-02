@@ -398,41 +398,41 @@
                     </div>
 
                     <!-- Form untuk Sasaran Strategis yang ada -->
-                    <div id="existing_sasaran_form">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                            <select name="ptip_id" id="ptipSelect" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Sasaran Strategis</option>
-                                @foreach($data->unique('sasaran_strategis') as $item)
-                                    <option value="{{ $item->id }}" 
-                                            data-indikator="{{ $item->indikator_kinerja }}"
-                                            data-target="{{ $item->target }}"
-                                            data-label="{{ $item->label_input_1 }}"
-                                            {{ old('ptip_id') == $item->id ? 'selected' : '' }}>
-                                        {{ $item->sasaran_strategis }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('ptip_id')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
+<div id="existing_sasaran_form">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+        <select name="parent_id" id="ptipSelect" required
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+            <option value="">Pilih Sasaran Strategis</option>
+            @foreach($sasaranStrategis as $sasaran)
+                <option value="{{ $sasaran->id }}" 
+                        data-indikator="{{ $sasaran->indikator_kinerja }}"
+                        data-target="{{ $sasaran->target }}"
+                        data-label="{{ $sasaran->label_input_1 }}"
+                        {{ old('parent_id') == $sasaran->id ? 'selected' : '' }}>
+                    {{ $sasaran->sasaran_strategis }}
+                </option>
+            @endforeach
+        </select>
+        @error('parent_id')
+            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+        @enderror
+    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                                <input type="text" id="indikatorDisplay" readonly
-                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Target</label>
-                                <input type="text" id="targetDisplay" readonly
-                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                            </div>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+            <input type="text" id="indikatorDisplay" readonly
+                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Target</label>
+            <input type="text" id="targetDisplay" readonly
+                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+        </div>
+    </div>
+</div>
 
                     <!-- Input untuk nilai -->
                     <div>
@@ -508,6 +508,13 @@
                                 </select>
                             </div>
                             
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                                <input type="text" id="lampiranFilterIndikator" 
+                                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
+                                       placeholder="Cari indikator kinerja...">
+                            </div>
+                            
                             <div class="flex items-end">
                                 <button type="button" id="filterLampiranBtn" class="w-full bg-gray-600 text-white px-6 py-2.5 rounded-lg hover:bg-gray-700 transition duration-200 font-medium">
                                     Filter
@@ -518,15 +525,22 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Data PTIP</label>
-                        <select name="ptip_id" id="lampiranPtipSelect" required
+                        <select name="parent_id" id="lampiranPtipSelect" required
                                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
                             <option value="">Pilih Data PTIP</option>
                             @foreach($data as $item)
-                                <option value="{{ $item->id }}" data-bulan="{{ $item->bulan }}" data-tahun="{{ $item->tahun }}">
-                                    {{ $item->sasaran_strategis }} ({{ $item->nama_bulan }} {{ $item->tahun }})
+                                <option value="{{ $item->id }}" 
+                                        data-bulan="{{ $item->bulan }}" 
+                                        data-tahun="{{ $item->tahun }}"
+                                        data-indikator="{{ $item->indikator_kinerja }}"
+                                        data-sasaran="{{ $item->sasaran_strategis }}">
+                                    {{ $item->indikator_kinerja }} ({{ $item->nama_bulan }} {{ $item->tahun }})
                                 </option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="selectedSasaran">-</span>
+                        </p>
                     </div>
                     
                     <div>
@@ -601,6 +615,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama File</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indikator Kinerja</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sasaran Strategis</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Pengupload</th>
@@ -983,12 +998,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==================== FILTER UPLOAD LAMPIRAN ====================
     const lampiranFilterBulan = document.getElementById('lampiranFilterBulan');
     const lampiranFilterTahun = document.getElementById('lampiranFilterTahun');
+    const lampiranFilterIndikator = document.getElementById('lampiranFilterIndikator');
     const filterLampiranBtn = document.getElementById('filterLampiranBtn');
     const lampiranPtipSelect = document.getElementById('lampiranPtipSelect');
     
     function filterLampiranOptions() {
         const selectedBulan = lampiranFilterBulan ? lampiranFilterBulan.value : '';
         const selectedTahun = lampiranFilterTahun ? lampiranFilterTahun.value : '';
+        const searchIndikator = lampiranFilterIndikator ? lampiranFilterIndikator.value.toLowerCase() : '';
         
         let hasVisibleOptions = false;
         
@@ -997,11 +1014,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const optionBulan = option.getAttribute('data-bulan');
             const optionTahun = option.getAttribute('data-tahun');
+            const optionIndikator = option.getAttribute('data-indikator')?.toLowerCase() || '';
+            const optionSasaran = option.getAttribute('data-sasaran');
             
             const matchBulan = !selectedBulan || selectedBulan === optionBulan;
             const matchTahun = !selectedTahun || selectedTahun === optionTahun;
+            const matchIndikator = !searchIndikator || optionIndikator.includes(searchIndikator) || 
+                                   optionSasaran.toLowerCase().includes(searchIndikator);
             
-            if (matchBulan && matchTahun) {
+            if (matchBulan && matchTahun && matchIndikator) {
                 option.style.display = '';
                 option.disabled = false;
                 hasVisibleOptions = true;
@@ -1015,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedOption = lampiranPtipSelect.options[lampiranPtipSelect.selectedIndex];
         if (selectedOption && selectedOption.style.display === 'none') {
             lampiranPtipSelect.value = '';
+            document.getElementById('selectedSasaran').textContent = '-';
         }
         
         // Tampilkan pesan jika tidak ada opsi
@@ -1032,8 +1054,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Event listener untuk perubahan pilihan data PTIP
+    if (lampiranPtipSelect) {
+        lampiranPtipSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const sasaran = selectedOption.getAttribute('data-sasaran');
+                document.getElementById('selectedSasaran').textContent = 'Sasaran: ' + sasaran;
+            } else {
+                document.getElementById('selectedSasaran').textContent = '-';
+            }
+        });
+    }
+    
     if (filterLampiranBtn) {
         filterLampiranBtn.addEventListener('click', filterLampiranOptions);
+    }
+    
+    // Filter real-time saat mengetik di input indikator
+    if (lampiranFilterIndikator) {
+        lampiranFilterIndikator.addEventListener('input', filterLampiranOptions);
     }
     
     // ==================== LAMPIRAN FUNCTIONALITY ====================
@@ -1102,6 +1142,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                    target="_blank">
                                     ${lampiran.original_name}
                                 </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${lampiran.ptip ? lampiran.ptip.indikator_kinerja : '-'}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 ${lampiran.ptip ? lampiran.ptip.sasaran_strategis : '-'}
@@ -1200,6 +1243,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     alert('Lampiran berhasil diupload!');
                     uploadForm.reset();
+                    document.getElementById('selectedSasaran').textContent = '-';
                     loadLampiranData();
                 } else {
                     alert('Error: ' + (data.error || 'Gagal mengupload lampiran'));
