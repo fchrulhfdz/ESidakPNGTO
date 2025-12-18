@@ -85,6 +85,26 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => 'kepegawaian'
             ],
+
+            // ========== READ ONLY USERS ==========
+            [
+                'name' => 'Ketua',
+                'email' => 'ketua@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'read_only'
+            ],
+            [
+                'name' => 'Sekretaris',
+                'email' => 'sekretaris@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'read_only'
+            ],
+            [
+                'name' => 'Panmud',
+                'email' => 'panmud@esidak.com',
+                'password' => Hash::make('password'),
+                'role' => 'read_only'
+            ],
         ];
 
         foreach ($users as $user) {

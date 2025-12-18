@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Hukum extends Model
 {
@@ -22,8 +23,14 @@ class Hukum extends Model
         'input_2',
         'realisasi',
         'capaian',
+        'status_capaian',
+        'hambatan',
+        'rekomendasi',
+        'tindak_lanjut',
+        'keberhasilan',
         'bulan',
         'tahun',
+        'tipe_input',
     ];
 
     protected $casts = [
@@ -36,7 +43,18 @@ class Hukum extends Model
         'input_2' => 'integer',
     ];
 
-    // Tambahkan mutator untuk handle nilai decimal
+    protected $appends = [
+        'nama_bulan',
+        'periode',
+        'display_label_input_1',
+        'display_label_input_2',
+        'display_input_2',
+        'is_dua_input',
+        'is_satu_input',
+        'formatted_target',
+    ];
+
+    // Mutator
     public function setTargetAttribute($value)
     {
         $this->attributes['target'] = $this->cleanDecimalValue($value);
@@ -72,26 +90,86 @@ class Hukum extends Model
         $this->attributes['tahun'] = $value ? (int) $value : null;
     }
 
-    // Mutator untuk label input (jika diperlukan)
-    public function setLabelInput1Attribute($value)
+    // Accessor untuk menentukan tipe input
+    public function getIsDuaInputAttribute()
     {
-        $this->attributes['label_input_1'] = $value ?: 'Jumlah Produk Hukum Dibuat';
+        return $this->tipe_input === 'dua_input';
     }
 
-    public function setLabelInput2Attribute($value)
+    public function getIsSatuInputAttribute()
     {
-        $this->attributes['label_input_2'] = $value ?: 'Jumlah Produk Hukum Diselesaikan';
+        return $this->tipe_input === 'satu_input';
     }
 
-    // Accessor untuk label input (jika kosong, berikan nilai default)
-    public function getLabelInput1Attribute($value)
+    // Accessor untuk label input yang sesuai dengan tipe_input
+    public function getDisplayLabelInput1Attribute()
     {
-        return $value ?: 'Jumlah Produk Hukum Dibuat';
+        if ($this->label_input_1) {
+            return $this->label_input_1;
+        }
+        
+        // Default label berdasarkan tipe_input
+        if ($this->tipe_input === 'dua_input') {
+            return 'Jumlah Perkara Hukum Diselesaikan';
+        } else {
+            return 'Jumlah Perkara Hukum';
+        }
     }
 
-    public function getLabelInput2Attribute($value)
+    public function getDisplayLabelInput2Attribute()
     {
-        return $value ?: 'Jumlah Produk Hukum Diselesaikan';
+        if ($this->tipe_input === 'dua_input') {
+            return $this->label_input_2 ?: 'Jumlah Perkara Hukum Tepat Waktu';
+        }
+        
+        return null; // Tidak ada label_input_2 untuk satu_input
+    }
+
+    // Accessor untuk menampilkan input_2 hanya jika dua_input
+    public function getDisplayInput2Attribute()
+    {
+        if ($this->tipe_input === 'dua_input') {
+            return $this->input_2;
+        }
+        
+        return null; // Tidak ada input_2 untuk satu_input
+    }
+
+    // Accessor untuk menampilkan target dengan format yang sesuai
+    public function getFormattedTargetAttribute()
+    {
+        if (!$this->target) {
+            return '-';
+        }
+        
+        $target = (float) $this->target;
+        
+        if ($this->tipe_input === 'dua_input') {
+            return number_format($target, 2) . '%';
+        } else {
+            return number_format($target, 2);
+        }
+    }
+
+    // Accessor untuk kolom analisis
+    public function getHambatanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getRekomendasiAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getTindakLanjutAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getKeberhasilanAttribute($value)
+    {
+        return $value ?: '-';
     }
 
     private function cleanDecimalValue($value)
@@ -100,7 +178,6 @@ class Hukum extends Model
             return 0;
         }
         
-        // Handle string dengan koma
         if (is_string($value)) {
             $value = str_replace(',', '.', $value);
         }
@@ -108,10 +185,35 @@ class Hukum extends Model
         return (float) $value;
     }
 
+    // Scope untuk filter berdasarkan tipe_input
+    public function scopeByTipeInput($query, $tipe_input)
+    {
+        return $query->where('tipe_input', $tipe_input);
+    }
+
     // Scope untuk filter bulan dan tahun
     public function scopeFilterByPeriod($query, $bulan, $tahun)
     {
         return $query->where('bulan', $bulan)->where('tahun', $tahun);
+    }
+
+    // Scope untuk filter tahun saja
+    public function scopeFilterByTahun($query, $tahun)
+    {
+        return $query->where('tahun', $tahun);
+    }
+
+    // Scope untuk filter bulan saja
+    public function scopeFilterByBulan($query, $bulan)
+    {
+        return $query->where('bulan', $bulan);
+    }
+
+    // Scope untuk pencarian
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('sasaran_strategis', 'like', "%{$search}%")
+                    ->orWhere('indikator_kinerja', 'like', "%{$search}%");
     }
 
     // Accessor untuk nama bulan
@@ -135,14 +237,109 @@ class Hukum extends Model
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
     }
 
-    // Method untuk mendapatkan label input yang aman (tidak null)
+    // Accessor untuk periode
+    public function getPeriodeAttribute()
+    {
+        if ($this->bulan && $this->tahun) {
+            return $this->nama_bulan . ' ' . $this->tahun;
+        }
+        return null;
+    }
+
+    // Method untuk mendapatkan label input yang aman berdasarkan tipe_input
     public function getSafeLabelInput1()
     {
-        return $this->label_input_1 ?: 'Jumlah Produk Hukum Dibuat';
+        if ($this->label_input_1) {
+            return $this->label_input_1;
+        }
+        
+        return $this->tipe_input === 'dua_input' ? 'Jumlah Perkara Hukum Diselesaikan' : 'Jumlah Perkara Hukum';
     }
 
     public function getSafeLabelInput2()
     {
-        return $this->label_input_2 ?: 'Jumlah Produk Hukum Diselesaikan';
+        if ($this->tipe_input === 'dua_input') {
+            return $this->label_input_2 ?: 'Jumlah Perkara Hukum Tepat Waktu';
+        }
+        
+        return null;
+    }
+
+    // Method untuk menghitung capaian otomatis berdasarkan tipe_input
+    public function hitungCapaian()
+    {
+        if (!$this->target || $this->target == 0) {
+            return 0;
+        }
+        
+        if ($this->tipe_input === 'dua_input') {
+            // Untuk dua_input: capaian = (realisasi / target) * 100
+            if ($this->realisasi) {
+                $capaian = ($this->realisasi / $this->target) * 100;
+                return round($capaian, 2);
+            }
+        } else {
+            // Untuk satu_input: capaian = (input_1 / target) * 100
+            if ($this->input_1) {
+                $capaian = ($this->input_1 / $this->target) * 100;
+                return round($capaian, 2);
+            }
+        }
+        
+        return 0;
+    }
+
+    // Method untuk menentukan status capaian
+    public function tentukanStatusCapaian()
+    {
+        $capaian = $this->capaian ?? $this->hitungCapaian();
+        
+        if ($capaian >= 100) {
+            return 'Tercapai';
+        } elseif ($capaian >= 80) {
+            return 'Hampir Tercapai';
+        } else {
+            return 'Belum Tercapai';
+        }
+    }
+
+    // Relasi dengan lampiran
+    public function lampirans(): HasMany
+    {
+        return $this->hasMany(HukumLampiran::class);
+    }
+
+    // Relasi dengan user
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Method untuk mengecek apakah memiliki lampiran
+    public function hasLampiran(): bool
+    {
+        return $this->lampirans()->exists();
+    }
+
+    // Method untuk mendapatkan jumlah lampiran
+    public function jumlahLampiran(): int
+    {
+        return $this->lampirans()->count();
+    }
+
+    // Method untuk mendapatkan badge class berdasarkan tipe_input
+    public function getTipeInputBadgeClass()
+    {
+        return $this->tipe_input === 'dua_input' 
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-green-100 text-green-800';
+    }
+
+    // Method untuk mendapatkan teks tipe_input
+    public function getTipeInputText()
+    {
+        return $this->tipe_input === 'dua_input' 
+            ? 'Dua Input' 
+            : 'Satu Input';
     }
 }

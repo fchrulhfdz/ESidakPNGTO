@@ -26,7 +26,8 @@ return new class extends Migration
                 'hukum',
                 'ptip',
                 'umum_keuangan',
-                'kepegawaian'
+                'kepegawaian',
+                'read_only',
             ])->default('hukum');
             $table->rememberToken();
             $table->timestamps();

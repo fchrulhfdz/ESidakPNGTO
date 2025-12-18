@@ -81,11 +81,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Tahun</option>
-                                @for($year = date('Y'); $year >= 2020; $year--)
-                                    <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>
-                                        {{ $year }}
-                                    </option>
-                                @endfor
+                        @for($year = 2030; $year >= 2025; $year--)
+                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endfor
                             </select>
                         </div>
                         
@@ -147,19 +147,19 @@
         <div id="form-tahunan" class="tab-content {{ $jenisLaporan == 'tahunan' ? 'block' : 'hidden' }}">
             <div class="bg-white rounded-lg shadow-md p-6">
                 <form action="{{ route('laporan') }}" method="GET">
-                    <input type="hidden" name="jenis_laporan" value="tahunan">
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                            <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">Pilih Tahun</option>
-                                @for($year = date('Y'); $year >= 2020; $year--)
-                                    <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
-                                        {{ $year }}
-                                    </option>
-                                @endfor
-                            </select>
-                        </div>
+            <input type="hidden" name="jenis_laporan" value="tahunan">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                    <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Pilih Tahun</option>
+                        @for($year = 2030; $year >= 2025; $year--)
+                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
                         
                         <!-- Bagian dropdown untuk super_admin -->
                         @if(auth()->user()->role === 'super_admin')
@@ -236,11 +236,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Tahun</option>
-                                @for($year = date('Y'); $year >= 2020; $year--)
-                                    <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>
-                                        {{ $year }}
-                                    </option>
-                                @endfor
+                        @for($year = 2030; $year >= 2025; $year--)
+                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endfor
                             </select>
                         </div>
                         

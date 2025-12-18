@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Phi extends Model
 {
@@ -22,8 +23,14 @@ class Phi extends Model
         'input_2',
         'realisasi',
         'capaian',
+        'status_capaian',
+        'hambatan',
+        'rekomendasi',
+        'tindak_lanjut',
+        'keberhasilan',
         'bulan',
         'tahun',
+        'tipe_input',
     ];
 
     protected $casts = [
@@ -36,7 +43,18 @@ class Phi extends Model
         'input_2' => 'integer',
     ];
 
-    // Tambahkan mutator untuk handle nilai decimal
+    protected $appends = [
+        'nama_bulan',
+        'periode',
+        'display_label_input_1',
+        'display_label_input_2',
+        'display_input_2',
+        'is_dua_input',
+        'is_satu_input',
+        'formatted_target',
+    ];
+
+    // Mutator
     public function setTargetAttribute($value)
     {
         $this->attributes['target'] = $this->cleanDecimalValue($value);
@@ -72,26 +90,86 @@ class Phi extends Model
         $this->attributes['tahun'] = $value ? (int) $value : null;
     }
 
-    // Mutator untuk label input dengan nilai default untuk PHI
-    public function setLabelInput1Attribute($value)
+    // Accessor untuk menentukan tipe input
+    public function getIsDuaInputAttribute()
     {
-        $this->attributes['label_input_1'] = $value ?: 'Jumlah Perkara PHI Diselesaikan';
+        return $this->tipe_input === 'dua_input';
     }
 
-    public function setLabelInput2Attribute($value)
+    public function getIsSatuInputAttribute()
     {
-        $this->attributes['label_input_2'] = $value ?: 'Jumlah Perkara PHI Tepat Waktu';
+        return $this->tipe_input === 'satu_input';
     }
 
-    // Accessor untuk label input (jika kosong, berikan nilai default untuk PHI)
-    public function getLabelInput1Attribute($value)
+    // Accessor untuk label input yang sesuai dengan tipe_input
+    public function getDisplayLabelInput1Attribute()
     {
-        return $value ?: 'Jumlah Perkara PHI Diselesaikan';
+        if ($this->label_input_1) {
+            return $this->label_input_1;
+        }
+        
+        // Default label berdasarkan tipe_input
+        if ($this->tipe_input === 'dua_input') {
+            return 'Jumlah Perkara PHI Diselesaikan';
+        } else {
+            return 'Jumlah Perkara PHI';
+        }
     }
 
-    public function getLabelInput2Attribute($value)
+    public function getDisplayLabelInput2Attribute()
     {
-        return $value ?: 'Jumlah Perkara PHI Tepat Waktu';
+        if ($this->tipe_input === 'dua_input') {
+            return $this->label_input_2 ?: 'Jumlah Perkara PHI Tepat Waktu';
+        }
+        
+        return null; // Tidak ada label_input_2 untuk satu_input
+    }
+
+    // Accessor untuk menampilkan input_2 hanya jika dua_input
+    public function getDisplayInput2Attribute()
+    {
+        if ($this->tipe_input === 'dua_input') {
+            return $this->input_2;
+        }
+        
+        return null; // Tidak ada input_2 untuk satu_input
+    }
+
+    // Accessor untuk menampilkan target dengan format yang sesuai
+    public function getFormattedTargetAttribute()
+    {
+        if (!$this->target) {
+            return '-';
+        }
+        
+        $target = (float) $this->target;
+        
+        if ($this->tipe_input === 'dua_input') {
+            return number_format($target, 2) . '%';
+        } else {
+            return number_format($target, 2);
+        }
+    }
+
+    // Accessor untuk kolom analisis
+    public function getHambatanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getRekomendasiAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getTindakLanjutAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getKeberhasilanAttribute($value)
+    {
+        return $value ?: '-';
     }
 
     private function cleanDecimalValue($value)
@@ -100,12 +178,17 @@ class Phi extends Model
             return 0;
         }
         
-        // Handle string dengan koma
         if (is_string($value)) {
             $value = str_replace(',', '.', $value);
         }
         
         return (float) $value;
+    }
+
+    // Scope untuk filter berdasarkan tipe_input
+    public function scopeByTipeInput($query, $tipe_input)
+    {
+        return $query->where('tipe_input', $tipe_input);
     }
 
     // Scope untuk filter bulan dan tahun
@@ -114,10 +197,23 @@ class Phi extends Model
         return $query->where('bulan', $bulan)->where('tahun', $tahun);
     }
 
-    // Scope untuk filter berdasarkan jenis perkara (jika diperlukan)
-    public function scopePhi($query)
+    // Scope untuk filter tahun saja
+    public function scopeFilterByTahun($query, $tahun)
     {
-        return $query->where('jenis', 'phi');
+        return $query->where('tahun', $tahun);
+    }
+
+    // Scope untuk filter bulan saja
+    public function scopeFilterByBulan($query, $bulan)
+    {
+        return $query->where('bulan', $bulan);
+    }
+
+    // Scope untuk pencarian
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('sasaran_strategis', 'like', "%{$search}%")
+                    ->orWhere('indikator_kinerja', 'like', "%{$search}%");
     }
 
     // Accessor untuk nama bulan
@@ -141,104 +237,109 @@ class Phi extends Model
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
     }
 
-    // Method untuk mendapatkan label input yang aman (tidak null) untuk PHI
+    // Accessor untuk periode
+    public function getPeriodeAttribute()
+    {
+        if ($this->bulan && $this->tahun) {
+            return $this->nama_bulan . ' ' . $this->tahun;
+        }
+        return null;
+    }
+
+    // Method untuk mendapatkan label input yang aman berdasarkan tipe_input
     public function getSafeLabelInput1()
     {
-        return $this->label_input_1 ?: 'Jumlah Perkara PHI Diselesaikan';
+        if ($this->label_input_1) {
+            return $this->label_input_1;
+        }
+        
+        return $this->tipe_input === 'dua_input' ? 'Jumlah Perkara PHI Diselesaikan' : 'Jumlah Perkara PHI';
     }
 
     public function getSafeLabelInput2()
     {
-        return $this->label_input_2 ?: 'Jumlah Perkara PHI Tepat Waktu';
-    }
-
-    // Method untuk menghitung realisasi dan capaian otomatis
-    public function calculatePerformance()
-    {
-        if ($this->input_1 && $this->input_2) {
-            // Hitung realisasi: (input_2 / input_1) * 100
-            if ($this->input_1 > 0) {
-                $this->realisasi = ($this->input_2 / $this->input_1) * 100;
-            } else {
-                $this->realisasi = 0;
-            }
-
-            // Hitung capaian: (realisasi / target) * 100
-            if ($this->target > 0) {
-                $this->capaian = ($this->realisasi / $this->target) * 100;
-            } else {
-                $this->capaian = 0;
-            }
+        if ($this->tipe_input === 'dua_input') {
+            return $this->label_input_2 ?: 'Jumlah Perkara PHI Tepat Waktu';
         }
-    }
-
-    // Event boot untuk auto-calculate sebelum save
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function ($model) {
-            $model->calculatePerformance();
-        });
-    }
-
-    // Method untuk mendapatkan data berdasarkan periode
-    public static function getByPeriod($bulan, $tahun)
-    {
-        return static::where('bulan', $bulan)
-                    ->where('tahun', $tahun)
-                    ->get();
-    }
-
-    // Method untuk mendapatkan total realisasi dan capaian
-    public static function getTotalPerformance($bulan = null, $tahun = null)
-    {
-        $query = static::query();
         
-        if ($bulan && $tahun) {
-            $query->where('bulan', $bulan)->where('tahun', $tahun);
-        }
-
-        $data = $query->get();
-
-        $totalRealisasi = $data->sum('realisasi');
-        $totalCapaian = $data->sum('capaian');
-        $count = $data->count();
-
-        return [
-            'total_realisasi' => $count > 0 ? $totalRealisasi / $count : 0,
-            'total_capaian' => $count > 0 ? $totalCapaian / $count : 0,
-            'count' => $count
-        ];
+        return null;
     }
 
-    // Method untuk mendapatkan statistik bulanan
-    public static function getMonthlyStats($tahun)
+    // Method untuk menghitung capaian otomatis berdasarkan tipe_input
+    public function hitungCapaian()
     {
-        return static::where('tahun', $tahun)
-                    ->selectRaw('bulan, AVG(realisasi) as avg_realisasi, AVG(capaian) as avg_capaian')
-                    ->groupBy('bulan')
-                    ->orderBy('bulan')
-                    ->get()
-                    ->mapWithKeys(function ($item) {
-                        return [$item->bulan => [
-                            'avg_realisasi' => floatval($item->avg_realisasi),
-                            'avg_capaian' => floatval($item->avg_capaian)
-                        ]];
-                    });
+        if (!$this->target || $this->target == 0) {
+            return 0;
+        }
+        
+        if ($this->tipe_input === 'dua_input') {
+            // Untuk dua_input: capaian = (realisasi / target) * 100
+            if ($this->realisasi) {
+                $capaian = ($this->realisasi / $this->target) * 100;
+                return round($capaian, 2);
+            }
+        } else {
+            // Untuk satu_input: capaian = (input_1 / target) * 100
+            if ($this->input_1) {
+                $capaian = ($this->input_1 / $this->target) * 100;
+                return round($capaian, 2);
+            }
+        }
+        
+        return 0;
     }
 
-    // Method untuk memeriksa duplikasi sasaran strategis pada periode yang sama
-    public static function isDuplicate($sasaranStrategis, $bulan, $tahun, $excludeId = null)
+    // Method untuk menentukan status capaian
+    public function tentukanStatusCapaian()
     {
-        $query = static::where('sasaran_strategis', $sasaranStrategis)
-                      ->where('bulan', $bulan)
-                      ->where('tahun', $tahun);
-
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
+        $capaian = $this->capaian ?? $this->hitungCapaian();
+        
+        if ($capaian >= 100) {
+            return 'Tercapai';
+        } elseif ($capaian >= 80) {
+            return 'Hampir Tercapai';
+        } else {
+            return 'Belum Tercapai';
         }
+    }
 
-        return $query->exists();
+    // Relasi dengan lampiran
+    public function lampirans(): HasMany
+    {
+        return $this->hasMany(PhiLampiran::class);
+    }
+
+    // Relasi dengan user
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Method untuk mengecek apakah memiliki lampiran
+    public function hasLampiran(): bool
+    {
+        return $this->lampirans()->exists();
+    }
+
+    // Method untuk mendapatkan jumlah lampiran
+    public function jumlahLampiran(): int
+    {
+        return $this->lampirans()->count();
+    }
+
+    // Method untuk mendapatkan badge class berdasarkan tipe_input
+    public function getTipeInputBadgeClass()
+    {
+        return $this->tipe_input === 'dua_input' 
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-green-100 text-green-800';
+    }
+
+    // Method untuk mendapatkan teks tipe_input
+    public function getTipeInputText()
+    {
+        return $this->tipe_input === 'dua_input' 
+            ? 'Dua Input' 
+            : 'Satu Input';
     }
 }

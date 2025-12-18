@@ -8,16 +8,33 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check()) {
+            \Log::info('AdminMiddleware: User not authenticated');
             return redirect()->route('login');
         }
 
+        $user = auth()->user();
+        $userRole = strtolower(trim($user->role));
+        
+        // LOG DETAIL
+        \Log::info('=== ADMIN MIDDLEWARE START ===', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_role' => $userRole,
+            'user_role_raw' => $user->role,
+            'path' => $request->path(),
+            'method' => $request->method(),
+            'url' => $request->url(),
+            'full_url' => $request->fullUrl(),
+            'route_name' => $request->route() ? $request->route()->getName() : null
+        ]);
+
+        // Daftar SEMUA role yang diizinkan
         $allowedRoles = [
+            'admin',
+            'super_admin',
             'perdata',
             'pidana', 
             'phi',
@@ -25,17 +42,33 @@ class AdminMiddleware
             'hukum',
             'ptip',
             'kepegawaian',
-            'umum_keuangan', // PERBAIKAN: gunakan underscore untuk database
-            'super_admin',
+            'umum_keuangan',
+            'read_only',
         ];
 
-        $userRole = strtolower(trim(auth()->user()->role));
+        // Convert semua ke lowercase untuk comparison
+        $allowedRolesLower = array_map('strtolower', $allowedRoles);
+        $userRoleLower = strtolower($userRole);
 
-        if (!in_array($userRole, $allowedRoles)) {
-            \Log::warning("Unauthorized access attempt by user ID: " . auth()->user()->id . " with role: " . auth()->user()->role);
-            abort(403, 'Akses ditolak. Anda tidak memiliki hak akses ke halaman ini.');
+        // Cek apakah role ada di array
+        $isAllowed = in_array($userRoleLower, $allowedRolesLower);
+        
+        \Log::info('Role check result:', [
+            'user_role_lower' => $userRoleLower,
+            'allowed_roles_lower' => $allowedRolesLower,
+            'is_allowed' => $isAllowed ? 'YES' : 'NO',
+            'match_found' => $isAllowed ? 'Role matched' : 'Role NOT in allowed list'
+        ]);
+
+        if (!$isAllowed) {
+            \Log::warning("ACCESS DENIED - User ID: {$user->id}, Role: '{$userRole}'");
+            \Log::warning("User trying to access: " . $request->fullUrl());
+            abort(403, "Akses ditolak. Role '{$userRole}' tidak diizinkan untuk mengakses halaman ini.");
         }
 
+        \Log::info('ACCESS GRANTED - Continuing to next middleware/controller');
+        \Log::info('=== ADMIN MIDDLEWARE END ===');
+        
         return $next($request);
     }
 }

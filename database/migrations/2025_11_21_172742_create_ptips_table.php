@@ -1,11 +1,14 @@
 <?php
-// database/migrations/2025_11_21_172742_create_ptips_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('ptips', function (Blueprint $table) {
@@ -15,14 +18,24 @@ return new class extends Migration {
             $table->decimal('target', 5, 2)->nullable();
             $table->string('label_input_1')->nullable();
             $table->integer('input_1')->nullable();
+            
+            // Kolom capaian
+            $table->decimal('capaian', 10, 2)->nullable();
+            $table->string('status_capaian', 20)->nullable();
+            
+            // Kolom analisis (sudah ada di kode pertama)
+            $table->text('hambatan')->nullable();
+            $table->text('rekomendasi')->nullable();
+            $table->text('tindak_lanjut')->nullable();
+            $table->text('keberhasilan')->nullable();
+            
             $table->integer('bulan')->nullable();
             $table->integer('tahun')->nullable();
             $table->timestamps();
 
-            // Perbaiki index (tanpa kolom TEXT)
+            // Index
             $table->index(['bulan', 'tahun']);
             $table->index('tahun');
-            // Hapus index yang mengandung TEXT jika ada
         });
 
         Schema::create('ptip_lampirans', function (Blueprint $table) {
@@ -38,6 +51,9 @@ return new class extends Migration {
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('ptip_lampirans');

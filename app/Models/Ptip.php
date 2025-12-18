@@ -17,12 +17,19 @@ class Ptip extends Model
         'target',
         'label_input_1',
         'input_1',
+        'capaian',
+        'status_capaian',
+        'hambatan', 
+        'rekomendasi',
+        'tindak_lanjut',
+        'keberhasilan',
         'bulan',
         'tahun',
     ];
 
     protected $casts = [
         'target' => 'decimal:2',
+        'capaian' => 'decimal:2',
         'bulan' => 'integer',
         'tahun' => 'integer',
         'input_1' => 'integer',
@@ -58,13 +65,11 @@ class Ptip extends Model
         return $bulan[$this->bulan] ?? 'Tidak diketahui';
     }
 
-    // Cek apakah data memiliki nilai input
     public function getHasInputAttribute()
     {
         return !is_null($this->input_1) && $this->input_1 > 0;
     }
 
-    // Scope untuk mendapatkan sasaran strategis unik
     public function scopeUniqueSasaranStrategis($query)
     {
         return $query->select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
@@ -73,7 +78,6 @@ class Ptip extends Model
                     ->orderBy('sasaran_strategis');
     }
 
-    // Static method untuk mendapatkan semua sasaran strategis unik
     public static function getUniqueSasaranStrategis()
     {
         return self::select('sasaran_strategis', 'id', 'indikator_kinerja', 'target', 'label_input_1')
@@ -83,13 +87,11 @@ class Ptip extends Model
                   ->get();
     }
 
-    // Method untuk mendapatkan template sasaran strategis (input_1 null)
     public function isTemplate()
     {
         return is_null($this->input_1);
     }
 
-    // Static method untuk mendapatkan data unik berdasarkan indikator kinerja
     public static function getUniqueByIndikator()
     {
         return self::select('indikator_kinerja', 'id', 'sasaran_strategis', 'bulan', 'tahun')
@@ -99,9 +101,71 @@ class Ptip extends Model
                   ->get();
     }
 
-    // Scope untuk mencari berdasarkan indikator kinerja
     public function scopeByIndikator($query, $indikator)
     {
         return $query->where('indikator_kinerja', 'like', '%' . $indikator . '%');
+    }
+
+    public function hitungCapaian()
+    {
+        if ($this->target > 0 && $this->input_1 !== null) {
+            $this->capaian = $this->input_1 / $this->target;
+            
+            if ($this->capaian >= 1) {
+                $this->status_capaian = 'Tercapai';
+            } elseif ($this->capaian >= 0.8) {
+                $this->status_capaian = 'Hampir Tercapai';
+            } else {
+                $this->status_capaian = 'Belum Tercapai';
+            }
+            
+            return $this->capaian;
+        }
+        
+        return null;
+    }
+
+    public function getCapaianFormattedAttribute()
+    {
+        if ($this->capaian !== null) {
+            return number_format($this->capaian, 2);
+        }
+        return '-';
+    }
+
+    public function getCapaianPersenAttribute()
+    {
+        if ($this->capaian !== null) {
+            return number_format($this->capaian * 100, 2) . '%';
+        }
+        return '-';
+    }
+
+    // Accessor untuk kolom analisis
+    public function getHambatanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getRekomendasiAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getTindakLanjutAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getKeberhasilanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    // Cek apakah data memiliki analisis
+    public function getHasAnalisisAttribute()
+    {
+        return !empty($this->hambatan) || !empty($this->rekomendasi) || 
+               !empty($this->tindak_lanjut) || !empty($this->keberhasilan);
     }
 }

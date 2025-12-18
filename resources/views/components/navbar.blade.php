@@ -7,13 +7,13 @@
             <!-- Logo/Brand dengan efek hover yang lebih baik -->
             <div class="flex-shrink-0 flex items-center">
                 <div class="flex items-center space-x-3 group">
-                    <div class="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-lg ring-2 ring-green-400 ring-offset-2 ring-offset-green-800 transition-transform duration-300 group-hover:scale-105">
-                        <img 
-                            src="{{ asset('storage/logo/logopn.png') }}" 
-                            alt="Logo PN Gorontalo"
-                            class="w-8 h-8 object-contain"
-                        >
-                    </div>
+                    <div class="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+    <img 
+        src="{{ asset('storage/logo/logo01.png') }}" 
+        alt="Logo PN Gorontalo"
+        class="w-10 h-10 md:w-14 md:h-14 lg:w-18 lg:h-18 object-contain"
+    >
+</div>
                     <a href="{{ route('dashboard') }}" 
                        class="text-xl font-bold tracking-tight hover:text-green-100 transition-colors duration-300 group-hover:scale-[1.02] transform">
                         <span class="text-green-100">E-SIDAK</span>
@@ -41,6 +41,7 @@
                             </a>
 
                             <!-- Cetak Laporan -->
+                            @if(auth()->check() && auth()->user()->role !== 'read_only')
                             <a href="{{ route('laporan') }}" 
                                class="relative px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-green-600/80 hover:shadow-md group {{ request()->routeIs('laporan*') ? 'bg-green-600 shadow-md' : '' }}">
                                 <div class="flex items-center space-x-2">
@@ -51,7 +52,9 @@
                                 <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 bg-green-300 rounded-t-lg"></div>
                                 @endif
                             </a>
+                            @endif
 
+                            @if(auth()->check() && auth()->user()->role !== 'read_only')
                             <!-- Evaluasi Kerja -->
                             <a href="{{ route('evaluasi-kerja.index') }}" 
                                class="relative px-4 py-2.5 rounded-lg transition-all duration-200 hover:bg-green-600/80 hover:shadow-md group {{ request()->routeIs('evaluasi-kerja*') ? 'bg-green-600 shadow-md' : '' }}">
@@ -63,9 +66,10 @@
                                 <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 bg-green-300 rounded-t-lg"></div>
                                 @endif
                             </a>
+                            @endif
 
-                            @if(auth()->user()->isSuperAdmin())
-                                <!-- Dropdowns untuk Super Admin -->
+                            @if(auth()->user()->isSuperAdmin() || auth()->user()->role === 'read_only')
+                                <!-- Menu untuk Super Admin dan Read Only - SEMUA INDEX -->
                                 <div class="flex items-center space-x-0.5">
                                     <!-- Kepaniteraan Dropdown -->
                                     <div class="relative group">
@@ -168,7 +172,8 @@
                                         'hukum' => ['name' => 'Hukum', 'icon' => 'fa-book', 'route' => 'hukum'],
                                         'ptip' => ['name' => 'PTIP', 'icon' => 'fa-desktop', 'route' => 'ptip'],
                                         'umum_keuangan' => ['name' => 'Umum & Keuangan', 'icon' => 'fa-money-bill-wave', 'route' => 'umum-keuangan'],
-                                        'kepegawaian' => ['name' => 'Kepegawaian', 'icon' => 'fa-users', 'route' => 'kepegawaian']
+                                        'kepegawaian' => ['name' => 'Kepegawaian', 'icon' => 'fa-users', 'route' => 'kepegawaian'],
+                                        'admin' => ['name' => 'Admin', 'icon' => 'fa-user-shield', 'route' => 'dashboard']
                                     ];
                                     $currentRole = auth()->user()->role;
                                     $currentBagian = $bagianMapping[$currentRole] ?? null;
@@ -201,6 +206,8 @@
                                         <p class="text-xs text-green-200 mt-0.5">
                                             @if(auth()->user()->isSuperAdmin())
                                                 Super Admin
+                                            @elseif(auth()->user()->role === 'read_only')
+                                                Read Only
                                             @else
                                                 {{ auth()->user()->bagian_name }}
                                             @endif
@@ -220,10 +227,20 @@
                                         <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</p>
                                         <p class="text-xs text-gray-500 mt-0.5">{{ auth()->user()->email }}</p>
                                         <div class="mt-2">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ auth()->user()->isSuperAdmin() ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                @if(auth()->user()->isSuperAdmin()) 
+                                                    bg-purple-100 text-purple-800
+                                                @elseif(auth()->user()->role === 'read_only')
+                                                    bg-gray-100 text-gray-800
+                                                @else
+                                                    bg-green-100 text-green-800
+                                                @endif">
                                                 @if(auth()->user()->isSuperAdmin())
                                                     <i class="fas fa-crown mr-1"></i>
                                                     Super Administrator
+                                                @elseif(auth()->user()->role === 'read_only')
+                                                    <i class="fas fa-eye mr-1"></i>
+                                                    Read Only
                                                 @else
                                                     <i class="fas fa-user-tie mr-1"></i>
                                                     {{ auth()->user()->bagian_name }}
@@ -304,8 +321,8 @@
                         </div>
                     </a>
 
-                    @if(auth()->user()->isSuperAdmin())
-                        <!-- SUPER ADMIN MOBILE MENU -->
+                    @if(auth()->user()->isSuperAdmin() || auth()->user()->role === 'read_only')
+                        <!-- SUPER ADMIN & READ ONLY MOBILE MENU - SEMUA INDEX -->
                         <div class="pt-2 border-t border-green-600">
                             <p class="px-4 py-2 text-sm font-semibold text-green-200 uppercase tracking-wider">Kepaniteraan</p>
                             <div class="space-y-1 ml-4">
@@ -360,7 +377,8 @@
                                 'hukum' => ['name' => 'Hukum', 'icon' => 'fa-book', 'route' => 'hukum'],
                                 'ptip' => ['name' => 'PTIP', 'icon' => 'fa-desktop', 'route' => 'ptip'],
                                 'umum_keuangan' => ['name' => 'Umum & Keuangan', 'icon' => 'fa-money-bill-wave', 'route' => 'umum-keuangan'],
-                                'kepegawaian' => ['name' => 'Kepegawaian', 'icon' => 'fa-users', 'route' => 'kepegawaian']
+                                'kepegawaian' => ['name' => 'Kepegawaian', 'icon' => 'fa-users', 'route' => 'kepegawaian'],
+                                'admin' => ['name' => 'Admin', 'icon' => 'fa-user-shield', 'route' => 'dashboard']
                             ];
                             $currentRole = auth()->user()->role;
                             $currentBagian = $bagianMapping[$currentRole] ?? null;
@@ -395,6 +413,8 @@
                                     <p class="text-xs text-green-200">
                                         @if(auth()->user()->isSuperAdmin())
                                             <i class="fas fa-crown mr-1"></i>Super Administrator
+                                        @elseif(auth()->user()->role === 'read_only')
+                                            <i class="fas fa-eye mr-1"></i>Read Only
                                         @else
                                             <i class="fas fa-user-tie mr-1"></i>{{ auth()->user()->bagian_name }}
                                         @endif

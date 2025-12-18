@@ -17,12 +17,19 @@ class UmumKeuangan extends Model
         'target',
         'label_input_1',
         'input_1',
+        'capaian',
+        'status_capaian',
+        'hambatan',
+        'rekomendasi',
+        'tindak_lanjut',
+        'keberhasilan',
         'bulan',
         'tahun',
     ];
 
     protected $casts = [
         'target' => 'decimal:2',
+        'capaian' => 'decimal:2',
         'bulan' => 'integer',
         'tahun' => 'integer',
         'input_1' => 'integer',
@@ -97,5 +104,68 @@ class UmumKeuangan extends Model
     public function scopeByIndikator($query, $indikator)
     {
         return $query->where('indikator_kinerja', 'like', '%' . $indikator . '%');
+    }
+
+    public function hitungCapaian()
+    {
+        if ($this->target > 0 && $this->input_1 !== null) {
+            $this->capaian = $this->input_1 / $this->target;
+            
+            if ($this->capaian >= 1) {
+                $this->status_capaian = 'Tercapai';
+            } elseif ($this->capaian >= 0.8) {
+                $this->status_capaian = 'Hampir Tercapai';
+            } else {
+                $this->status_capaian = 'Belum Tercapai';
+            }
+            
+            return $this->capaian;
+        }
+        
+        return null;
+    }
+
+    public function getCapaianFormattedAttribute()
+    {
+        if ($this->capaian !== null) {
+            return number_format($this->capaian, 2);
+        }
+        return '-';
+    }
+
+    public function getCapaianPersenAttribute()
+    {
+        if ($this->capaian !== null) {
+            return number_format($this->capaian * 100, 2) . '%';
+        }
+        return '-';
+    }
+
+    // Accessor untuk kolom analisis
+    public function getHambatanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getRekomendasiAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getTindakLanjutAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    public function getKeberhasilanAttribute($value)
+    {
+        return $value ?: '-';
+    }
+
+    // Cek apakah data memiliki analisis
+    public function getHasAnalisisAttribute()
+    {
+        return !empty($this->hambatan) || !empty($this->rekomendasi) || 
+               !empty($this->tindak_lanjut) || !empty($this->keberhasilan);
     }
 }

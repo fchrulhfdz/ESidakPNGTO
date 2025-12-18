@@ -121,7 +121,7 @@
                                 </label>
                                 <select name="tahun" id="tahun" required
                                     class="w-full px-3 py-2 text-sm border {{ $errors->has('tahun') ? 'border-red-300' : 'border-gray-300' }} rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
-                                    @for($i = date('Y'); $i >= 2020; $i--)
+                                    @for($i = 2030; $i >= 2025; $i--)
                                         <option value="{{ $i }}" {{ old('tahun', date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
                                     @endfor
                                 </select>
@@ -137,7 +137,7 @@
                                 </label>
                                 <select name="bulan" id="bulan" required
                                     class="w-full px-3 py-2 text-sm border {{ $errors->has('bulan') ? 'border-red-300' : 'border-gray-300' }} rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
-                                    @foreach(['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Triwulan I', 'Triwulan II', 'Triwulan III', 'Triwulan IV', 'Semester I', 'Semester II', 'Tahunan'] as $month)
+                                    @foreach(['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $month)
                                         <option value="{{ $month }}" {{ old('bulan') == $month ? 'selected' : '' }}>{{ $month }}</option>
                                     @endforeach
                                 </select>

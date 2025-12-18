@@ -7,7 +7,7 @@
     <div class="container mx-auto px-4">
         <!-- Header Section -->
         <div class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">Dashboard E-SIDAK</h1>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Dashboard E-SIDAK REBORN</h1>
             <p class="text-lg text-gray-600">Pengadilan Negeri Gorontalo</p>
             <div class="w-24 h-1 bg-gradient-to-r from-green-500 to-blue-500 mx-auto mt-4 rounded-full"></div>
         </div>

@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UmumKeuanganLampiran extends Model
+class KepegawaianLampiran extends Model
 {
     use HasFactory;
 
-    protected $table = 'umum_keuangan_lampirans';
+    protected $table = 'kepegawaian_lampirans';
 
     protected $fillable = [
-        'umum_keuangan_id',
+        'kepegawaian_id',
         'user_id',
         'nama_file',
         'path',
@@ -21,17 +21,17 @@ class UmumKeuanganLampiran extends Model
         'mime_type',
     ];
 
-    public function umumKeuangan()
+    public function kepegawaian()
     {
-        return $this->belongsTo(UmumKeuangan::class);
+        return $this->belongsTo(Kepegawaian::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\App\Models\User::class);
     }
 
-    public function getFormattedFileSizeAttribute()
+    public function getFileSizeFormattedAttribute()
     {
         $bytes = $this->file_size;
         if ($bytes >= 1073741824) {
@@ -43,10 +43,5 @@ class UmumKeuanganLampiran extends Model
         } else {
             return $bytes . ' bytes';
         }
-    }
-
-    public function getTanggalUploadAttribute()
-    {
-        return $this->created_at->translatedFormat('d F Y H:i');
     }
 }

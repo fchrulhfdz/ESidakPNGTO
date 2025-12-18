@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('storage/logo/logo01.png') }}" >
     <title>Login - Pengadilan Negeri Gorontalo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -69,10 +70,13 @@
         .login-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
             color: white;
-            padding: 30px 25px;
-            text-align: center;
+            padding: 40px 25px 30px;
             position: relative;
             overflow: hidden;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .login-header::before {
@@ -87,47 +91,53 @@
         
         .logo-container {
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
+            justify-content: flex-start;
+            margin-bottom: 20px;
             position: relative;
             z-index: 2;
+            width: 100%;
         }
         
         .logo-icon {
-            width: 70px;
-            height: 70px;
-            background-color: white;
-            border-radius: 50%;
+            width: 100px;
+            height: 100px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-right: 15px;
-            color: var(--primary-color);
-            font-size: 28px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
             transition: var(--transition);
+            flex-shrink: 0;
         }
         
         .logo-icon:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         
         .institution-name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 600;
             text-align: left;
             line-height: 1.3;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         
         .login-title {
             font-size: 26px;
             font-weight: 500;
-            margin-top: 10px;
             position: relative;
             z-index: 2;
+            text-align: center;
+            margin-top: 10px;
+            width: 100%;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         
         .login-form {
@@ -329,6 +339,41 @@
             border-color: var(--error-color) !important;
         }
         
+        /* CSS baru untuk layout logo dan judul */
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .logo-main {
+            width: 125px;
+            height: 125px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .logo-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+        }
+        
         @media (max-width: 480px) {
             .login-container {
                 max-width: 100%;
@@ -346,23 +391,63 @@
             .forgot-password {
                 margin-top: 10px;
             }
+            
+            .logo-main {
+                width: 90px;
+                height: 90px;
+                margin-right: 15px;
+            }
+            
+            .institution-name {
+                font-size: 18px;
+            }
+            
+            .login-header {
+                min-height: 200px;
+                padding: 30px 20px 25px;
+            }
+            
+            .login-title {
+                font-size: 22px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .logo-main {
+                width: 80px;
+                height: 80px;
+                margin-right: 12px;
+            }
+            
+            .institution-name {
+                font-size: 16px;
+            }
+            
+            .login-title {
+                font-size: 20px;
+            }
+            
+            .login-header {
+                min-height: 180px;
+                padding: 25px 15px 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
-    <div class="logo-container">
-        <div class="logo-icon">
-            <img src="{{ asset('storage/logo/logopn.png') }}" 
-                 alt="Logo PN Gorontalo"
-                 style="width: 48px; height: auto;">
+            <div class="header-content">
+                <div class="logo-title-wrapper">
+                    <div class="logo-main">
+                        <img src="{{ asset('storage/logo/logo01.png') }}" 
+                             alt="Logo PN Gorontalo">
+                    </div>
+                    <div class="institution-name">Pengadilan Negeri<br>Gorontalo</div>
+                </div>
+                <div class="login-title">Login</div>
+            </div>
         </div>
-        <div class="institution-name">Pengadilan Negeri<br>Gorontalo</div>
-    </div>
-    <div class="login-title">Login</div>
-</div>
-
         
         <form class="login-form" method="POST" action="{{ route('login') }}">
             @csrf

@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/KesekretariatanController.php
 
 namespace App\Http\Controllers;
 
@@ -27,23 +26,29 @@ class KesekretariatanController extends Controller
             'kepegawaian' => Kepegawaian::class,
         ];
 
-        if (!array_key_exists($jenis, $modelMapping)) {
-            abort(404);
+         if (!array_key_exists($jenis, $modelMapping)) {
+        abort(404);
         }
 
         $user = auth()->user();
         $dbRole = $this->getDbRoleFromUrl($jenis);
         
-        if (!$user->isSuperAdmin() && $user->role !== $dbRole) {
+        // PERBAIKAN: Izinkan akses untuk:
+        // 1. Super admin
+        // 2. Role yang sesuai dengan jenis 
+        // 3. Read_only (boleh lihat semua)
+        $allowedRoles = ['super_admin', 'admin', $dbRole, 'read_only'];
+        
+        if (!in_array($user->role, $allowedRoles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         $model = $modelMapping[$jenis];
         
         $data = $model::orderBy('tahun', 'desc')
-                     ->orderBy('bulan', 'desc')
-                     ->orderBy('created_at', 'desc')
-                     ->get();
+                    ->orderBy('bulan', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
         
         // Ambil sasaran strategis unik untuk dropdown (hanya yang belum ada inputnya)
         $sasaranStrategis = $model::whereNull('input_1')
@@ -86,13 +91,14 @@ class KesekretariatanController extends Controller
                     'tahun' => 'required|integer|min:2000|max:2100',
                 ]);
 
-                // SELALU BUAT DATA BARU untuk sasaran strategis (tidak perlu cek duplikat)
                 $dataArray = [
                     'sasaran_strategis' => $validated['sasaran_strategis'],
                     'indikator_kinerja' => $validated['indikator_kinerja'],
                     'target' => (float) $validated['target'],
                     'label_input_1' => $validated['label_input_1'],
                     'input_1' => null,
+                    'capaian' => null,
+                    'status_capaian' => null,
                     'bulan' => $validated['bulan'],
                     'tahun' => $validated['tahun'],
                 ];
@@ -109,20 +115,23 @@ class KesekretariatanController extends Controller
 
                 $model = $modelMapping[$jenis];
                 
-                // SELALU BUAT DATA BARU - tanpa pengecekan duplikat
                 $data = $model::create($dataArray);
 
                 DB::commit();
 
-                return redirect()->back()->with('success', 'Sasaran strategis berhasil ditambahkan! Anda dapat menambahkan sasaran strategis baru lainnya.');
+                return redirect()->back()->with('success', 'Sasaran strategis berhasil ditambahkan!');
 
             } else {
-                // Input Data (Admin Biasa atau Super Admin) - SELALU UPDATE JIKA SUDAH ADA
+                // Input Data (Admin Biasa atau Super Admin) - dengan perhitungan capaian
                 $validated = $request->validate([
                     'parent_id' => 'required|exists:' . $this->getTableName($jenis) . ',id',
                     'input_1' => 'required|integer|min:0',
                     'bulan' => 'required|integer|min:1|max:12',
                     'tahun' => 'required|integer|min:2000|max:2100',
+                    'hambatan' => 'nullable|string',
+                    'rekomendasi' => 'nullable|string',
+                    'tindak_lanjut' => 'nullable|string',
+                    'keberhasilan' => 'nullable|string',
                 ]);
 
                 $parentModel = $this->getParentModel($jenis);
@@ -133,7 +142,6 @@ class KesekretariatanController extends Controller
                     return redirect()->back()->with('error', 'Data yang dipilih bukan template sasaran strategis.');
                 }
                 
-                // Cari data yang sudah ada untuk sasaran strategis ini di bulan dan tahun yang sama
                 $modelMapping = [
                     'ptip' => Ptip::class,
                     'umum-keuangan' => UmumKeuangan::class,
@@ -152,26 +160,34 @@ class KesekretariatanController extends Controller
                     ->where('sasaran_strategis', $parent->sasaran_strategis)
                     ->first();
 
+                // Hitung capaian menggunakan method helper
+                $capaianResult = $this->hitungCapaian(
+                    (float)$validated['input_1'],
+                    (float)$parent->target
+                );
+
+                $dataArray = [
+                    'sasaran_strategis' => $parent->sasaran_strategis,
+                    'indikator_kinerja' => $parent->indikator_kinerja,
+                    'target' => $parent->target,
+                    'label_input_1' => $parent->label_input_1,
+                    'input_1' => $validated['input_1'],
+                    'capaian' => $capaianResult['capaian'],
+                    'status_capaian' => $capaianResult['status'],
+                    'hambatan' => $validated['hambatan'] ?? null,
+                    'rekomendasi' => $validated['rekomendasi'] ?? null,
+                    'tindak_lanjut' => $validated['tindak_lanjut'] ?? null,
+                    'keberhasilan' => $validated['keberhasilan'] ?? null,
+                    'bulan' => $validated['bulan'],
+                    'tahun' => $validated['tahun'],
+                ];
+
                 if ($existingData) {
                     // UPDATE data yang sudah ada
-                    $existingData->update([
-                        'input_1' => $validated['input_1'],
-                        'indikator_kinerja' => $parent->indikator_kinerja, // Update dari template jika ada perubahan
-                        'target' => $parent->target,
-                        'label_input_1' => $parent->label_input_1,
-                    ]);
+                    $existingData->update($dataArray);
                     $data = $existingData;
                 } else {
-                    // Buat data baru jika benar-benar belum ada
-                    $dataArray = [
-                        'sasaran_strategis' => $parent->sasaran_strategis,
-                        'indikator_kinerja' => $parent->indikator_kinerja,
-                        'target' => $parent->target,
-                        'label_input_1' => $parent->label_input_1,
-                        'input_1' => $validated['input_1'],
-                        'bulan' => $validated['bulan'],
-                        'tahun' => $validated['tahun'],
-                    ];
+                    // Buat data baru
                     $data = $model::create($dataArray);
                 }
 
@@ -198,26 +214,9 @@ class KesekretariatanController extends Controller
             $jenis = $this->getJenisFromPath($path);
             $dbRole = $this->getDbRoleFromUrl($jenis);
 
+            // Validasi akses: Super Admin atau Admin dengan role yang sesuai
             if (!$user->isSuperAdmin() && $user->role !== $dbRole) {
                 abort(403, 'Anda tidak memiliki akses untuk mengupdate data di bagian ini.');
-            }
-
-            // Validasi berbeda untuk Super Admin dan Admin Biasa
-            if ($user->isSuperAdmin()) {
-                $validated = $request->validate([
-                    'sasaran_strategis' => 'required|string|max:255',
-                    'indikator_kinerja' => 'required|string|max:255',
-                    'target' => 'required|numeric|min:0|max:100',
-                    'label_input_1' => 'required|string|max:255',
-                    'input_1' => 'required|integer|min:0',
-                    'bulan' => 'required|integer|min:1|max:12',
-                    'tahun' => 'required|integer|min:2000|max:2100',
-                ]);
-            } else {
-                // Admin biasa hanya bisa update input_1
-                $validated = $request->validate([
-                    'input_1' => 'required|integer|min:0',
-                ]);
             }
 
             $modelMapping = [
@@ -233,17 +232,66 @@ class KesekretariatanController extends Controller
             $model = $modelMapping[$jenis];
             $data = $model::findOrFail($id);
 
-            // Admin biasa hanya bisa update input_1
-            if (!$user->isSuperAdmin()) {
-                $data->update([
-                    'input_1' => $validated['input_1'],
+            // Validasi berbeda untuk Super Admin dan Admin Biasa
+            if ($user->isSuperAdmin()) {
+                $validated = $request->validate([
+                    'sasaran_strategis' => 'required|string|max:255',
+                    'indikator_kinerja' => 'required|string|max:255',
+                    'target' => 'required|numeric|min:0|max:100',
+                    'label_input_1' => 'required|string|max:255',
+                    'input_1' => 'required|numeric|min:0',
+                    'bulan' => 'required|integer|min:1|max:12',
+                    'tahun' => 'required|integer|min:2000|max:2100',
+                    'hambatan' => 'nullable|string',
+                    'rekomendasi' => 'nullable|string',
+                    'tindak_lanjut' => 'nullable|string',
+                    'keberhasilan' => 'nullable|string',
                 ]);
+                
+                // Hitung capaian untuk super admin
+                $capaianResult = $this->hitungCapaian(
+                    (float)$validated['input_1'],
+                    (float)$validated['target']
+                );
+                
+                $updateData = array_merge($validated, [
+                    'capaian' => $capaianResult['capaian'],
+                    'status_capaian' => $capaianResult['status'],
+                ]);
+                
+                $data->update($updateData);
+                
             } else {
-                $data->update($validated);
+                // Admin biasa hanya bisa update input_1 dan kolom analisis
+                $validated = $request->validate([
+                    'input_1' => 'required|numeric|min:0',
+                    'hambatan' => 'nullable|string',
+                    'rekomendasi' => 'nullable|string',
+                    'tindak_lanjut' => 'nullable|string',
+                    'keberhasilan' => 'nullable|string',
+                ]);
+                
+                // Gunakan nilai yang tidak bisa diubah oleh admin biasa
+                $target = $data->target;
+                $input1 = (float)$validated['input_1'];
+                
+                // Hitung capaian menggunakan target dari data yang ada
+                $capaianResult = $this->hitungCapaian($input1, $target);
+                
+                $updateData = [
+                    'input_1' => $input1,
+                    'capaian' => $capaianResult['capaian'],
+                    'status_capaian' => $capaianResult['status'],
+                    'hambatan' => $validated['hambatan'] ?? $data->hambatan,
+                    'rekomendasi' => $validated['rekomendasi'] ?? $data->rekomendasi,
+                    'tindak_lanjut' => $validated['tindak_lanjut'] ?? $data->tindak_lanjut,
+                    'keberhasilan' => $validated['keberhasilan'] ?? $data->keberhasilan,
+                ];
+                
+                $data->update($updateData);
             }
 
             DB::commit();
-
             return redirect()->back()->with('success', 'Data berhasil diupdate!');
 
         } catch (\Exception $e) {
@@ -264,8 +312,9 @@ class KesekretariatanController extends Controller
             $jenis = $this->getJenisFromPath($path);
             $dbRole = $this->getDbRoleFromUrl($jenis);
 
-            if (!$user->isSuperAdmin() && $user->role !== $dbRole) {
-                abort(403, 'Anda tidak memiliki akses untuk menghapus data di bagian ini.');
+            // Hanya Super Admin yang bisa menghapus data
+            if (!$user->isSuperAdmin()) {
+                abort(403, 'Hanya Super Admin yang dapat menghapus data.');
             }
 
             $modelMapping = [
@@ -574,7 +623,122 @@ class KesekretariatanController extends Controller
         }
     }
 
-    // Helper methods
+    // ==================== API UNTUK PERHITUNGAN CAPAIAN ====================
+    
+    /**
+     * API untuk perhitungan capaian real-time
+     */
+    public function calculateCapaianApi(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'input_1' => 'required|numeric|min:0',
+                'target' => 'required|numeric|min:0|max:100',
+            ]);
+
+            $result = $this->hitungCapaian(
+                (float) $validated['input_1'],
+                (float) $validated['target']
+            );
+
+            return response()->json([
+                'success' => true,
+                'capaian' => number_format($result['capaian'], 2),
+                'capaian_raw' => $result['capaian'],
+                'status' => $result['status'],
+                'persentase' => $result['persentase'],
+                'progress_width' => $result['progress_width']
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error calculating capaian: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * API untuk mendapatkan data edit
+     */
+    public function getEditData($jenis, $id)
+    {
+        try {
+            $user = auth()->user();
+            
+            $modelMapping = [
+                'ptip' => Ptip::class,
+                'umum-keuangan' => UmumKeuangan::class,
+                'kepegawaian' => Kepegawaian::class,
+            ];
+
+            if (!array_key_exists($jenis, $modelMapping)) {
+                return response()->json(['success' => false, 'error' => 'Jenis data tidak valid'], 400);
+            }
+
+            $model = $modelMapping[$jenis];
+            $data = $model::findOrFail($id);
+            
+            // Cek akses: Super Admin atau Admin dengan role yang sesuai
+            $dbRole = $this->getDbRoleFromUrl($jenis);
+            if (!$user->isSuperAdmin() && $user->role !== $dbRole) {
+                return response()->json(['success' => false, 'error' => 'Anda tidak memiliki akses untuk mengedit data ini.'], 403);
+            }
+
+            // Hitung capaian jika data sudah ada
+            $capaianData = [];
+            if ($data->input_1 !== null && $data->target > 0) {
+                $capaianData = $this->hitungCapaian($data->input_1, $data->target);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'capaian_data' => $capaianData,
+                'is_super_admin' => $user->isSuperAdmin()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting edit data: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => 'Data tidak ditemukan'], 404);
+        }
+    }
+
+    // ==================== HELPER METHODS ====================
+    
+    /**
+     * Hitung capaian berdasarkan input dan target
+     */
+    private function hitungCapaian($input, $target)
+    {
+        if ($target == 0) {
+            return [
+                'capaian' => 0,
+                'status' => 'Belum Tercapai',
+                'persentase' => '0%',
+                'progress_width' => 0
+            ];
+        }
+
+        $capaian = $input / $target;
+        
+        if ($capaian >= 1) {
+            $status = 'Tercapai';
+        } elseif ($capaian >= 0.8) {
+            $status = 'Hampir Tercapai';
+        } else {
+            $status = 'Belum Tercapai';
+        }
+
+        return [
+            'capaian' => $capaian,
+            'status' => $status,
+            'persentase' => number_format($capaian * 100, 2) . '%',
+            'progress_width' => min($capaian * 100, 100)
+        ];
+    }
+    
     private function getTableName($jenis)
     {
         $mapping = [
@@ -661,7 +825,7 @@ class KesekretariatanController extends Controller
         return response()->json($sasaranStrategis);
     }
 
-    // Method baru untuk mendapatkan data berdasarkan indikator kinerja
+    // Method untuk mendapatkan data berdasarkan indikator kinerja
     public function getByIndikator($jenis, Request $request)
     {
         $modelMapping = [
@@ -700,9 +864,56 @@ class KesekretariatanController extends Controller
                              'nama_bulan' => $item->nama_bulan,
                              'tahun' => $item->tahun,
                              'bulan' => $item->bulan,
+                             'capaian' => $item->capaian,
+                             'status_capaian' => $item->status_capaian,
                          ];
                      });
 
         return response()->json($data);
+    }
+
+    // API untuk mendapatkan data analisis berdasarkan ID
+    public function getAnalisisData($id, Request $request)
+    {
+        try {
+            $jenis = $request->query('jenis', 'ptip');
+            
+            $models = [
+                'ptip' => Ptip::class,
+                'umum-keuangan' => UmumKeuangan::class,
+                'kepegawaian' => Kepegawaian::class,
+            ];
+            
+            if (!array_key_exists($jenis, $models)) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Jenis tidak valid'
+                ]);
+            }
+            
+            $model = $models[$jenis];
+            $data = $model::find($id);
+            
+            if (!$data) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'hambatan' => $data->hambatan,
+                'rekomendasi' => $data->rekomendasi,
+                'tindak_lanjut' => $data->tindak_lanjut,
+                'keberhasilan' => $data->keberhasilan
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting analisis data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data'
+            ], 500);
+        }
     }
 }
