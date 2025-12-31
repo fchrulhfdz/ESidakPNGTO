@@ -183,14 +183,35 @@ class LaporanController extends Controller
         $jenisKepanitraan = ['perdata', 'pidana', 'tipikor', 'phi', 'hukum'];
         $jenisKesekretariatan = ['ptip', 'umum_keuangan', 'kepegawaian'];
         
-        // Untuk semua model, ambil semua kolom yang diperlukan
-        $query->select([
-            'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
-            'label_input_1', 'label_input_2', 'input_1', 'input_2', 
-            'realisasi', 'capaian', 'status_capaian',
-            'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
-            'bulan', 'tahun', 'created_at', 'rumus', 'tipe_input'
-        ]);
+        // Pilih kolom berdasarkan jenis model
+        if (in_array($jenis, $jenisKepanitraan)) {
+            // Kepanitraan menggunakan input_1, input_2, label_input_2, tipe_input
+            $query->select([
+                'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
+                'label_input_1', 'label_input_2', 'input_1', 'input_2', 
+                'realisasi', 'capaian', 'status_capaian',
+                'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
+                'bulan', 'tahun', 'created_at', 'rumus', 'tipe_input'
+            ]);
+        } elseif (in_array($jenis, $jenisKesekretariatan)) {
+            // Kesekretariatan hanya menggunakan input_1, tanpa input_2
+            $query->select([
+                'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
+                'label_input_1', 'input_1',
+                'capaian', 'status_capaian',
+                'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
+                'bulan', 'tahun', 'created_at'
+            ]);
+        } else {
+            // Fallback
+            $query->select([
+                'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
+                'label_input_1', 'input_1',
+                'capaian', 'status_capaian',
+                'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
+                'bulan', 'tahun', 'created_at'
+            ]);
+        }
 
         // Filter berdasarkan periode
         if ($jenisLaporan == 'bulanan') {
@@ -232,9 +253,14 @@ class LaporanController extends Controller
             
             // Pastikan nilai default untuk input yang kosong
             $item->input_1 = $item->input_1 ?? 0;
-            // Jangan ubah input_2 menjadi 0 jika null, pertahankan nilai asli dari database
-            if (!isset($item->input_2)) {
+            // Untuk kesekretariatan, tidak ada input_2
+            if (in_array($jenis, $jenisKesekretariatan)) {
                 $item->input_2 = null;
+            } else {
+                // Untuk kepanitraan, jangan ubah input_2 menjadi 0 jika null
+                if (!isset($item->input_2)) {
+                    $item->input_2 = null;
+                }
             }
             $item->realisasi = $item->realisasi ?? 0;
             $item->capaian = $item->capaian ?? 0;
