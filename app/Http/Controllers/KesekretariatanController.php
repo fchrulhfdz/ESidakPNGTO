@@ -643,8 +643,8 @@ class KesekretariatanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'capaian' => number_format($result['capaian'], 2),
-                'capaian_raw' => $result['capaian'],
+                'capaian' => number_format($result['capaian'], 2), // Format 2 desimal
+                'capaian_raw' => $result['capaian'], // Nilai mentah
                 'status' => $result['status'],
                 'persentase' => $result['persentase'],
                 'progress_width' => $result['progress_width']
@@ -708,7 +708,7 @@ class KesekretariatanController extends Controller
     // ==================== HELPER METHODS ====================
     
     /**
-     * Hitung capaian berdasarkan input dan target
+     * Hitung capaian berdasarkan input dan target (dalam persentase)
      */
     private function hitungCapaian($input, $target)
     {
@@ -721,11 +721,13 @@ class KesekretariatanController extends Controller
             ];
         }
 
-        $capaian = $input / $target;
+        // Hitung capaian dalam persentase: (input / target) * 100
+        $capaian = ($input / $target) * 100;
         
-        if ($capaian >= 1) {
+        // Tentukan status berdasarkan persentase capaian
+        if ($capaian >= 100) {
             $status = 'Tercapai';
-        } elseif ($capaian >= 0.8) {
+        } elseif ($capaian >= 80) {
             $status = 'Hampir Tercapai';
         } else {
             $status = 'Belum Tercapai';
@@ -733,9 +735,10 @@ class KesekretariatanController extends Controller
 
         return [
             'capaian' => $capaian,
+            'capaian_raw' => $capaian, // Nilai mentah untuk perhitungan
             'status' => $status,
-            'persentase' => number_format($capaian * 100, 2) . '%',
-            'progress_width' => min($capaian * 100, 100)
+            'persentase' => number_format($capaian, 2) . '%',
+            'progress_width' => min($capaian, 100)
         ];
     }
     

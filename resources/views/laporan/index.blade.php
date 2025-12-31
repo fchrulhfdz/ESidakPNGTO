@@ -29,6 +29,18 @@
         11 => 'November',
         12 => 'Desember'
     ];
+    
+    // Definisikan jenis untuk membedakan tampilan
+    $jenisKepanitraan = ['perdata', 'pidana', 'tipikor', 'phi', 'hukum'];
+    $jenisKesekretariatan = ['ptip', 'umum_keuangan', 'kepegawaian'];
+    
+    // Fungsi untuk menentukan apakah input_2 digunakan
+    function shouldShowInput2($item) {
+        if (!isset($item->use_input_2)) {
+            return false;
+        }
+        return $item->use_input_2 === true;
+    }
 @endphp
 
 <div class="container mx-auto px-4 py-8">
@@ -81,11 +93,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Tahun</option>
-                        @for($year = 2030; $year >= 2025; $year--)
-                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endfor
+                                @for($year = 2030; $year >= 2025; $year--)
+                                    <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endfor
                             </select>
                         </div>
                         
@@ -94,18 +106,17 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bagian</label>
                             <select name="bagian" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="all" {{ request('bagian') == 'all' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Semua Bagian</option>
                                 <optgroup label="Perkara">
-                                    <option value="perdata" {{ request('bagian') == 'perdata' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Perdata</option>
-                                    <option value="pidana" {{ request('bagian') == 'pidana' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Pidana</option>
-                                    <option value="tipikor" {{ request('bagian') == 'tipikor' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Tipikor</option>
-                                    <option value="phi" {{ request('bagian') == 'phi' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>PHI</option>
-                                    <option value="hukum" {{ request('bagian') == 'hukum' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Hukum</option>
+                                    <option value="perdata" {{ request('bagian') == 'perdata' ? 'selected' : '' }}>Perdata</option>
+                                    <option value="pidana" {{ request('bagian') == 'pidana' ? 'selected' : '' }}>Pidana</option>
+                                    <option value="tipikor" {{ request('bagian') == 'tipikor' ? 'selected' : '' }}>Tipikor</option>
+                                    <option value="phi" {{ request('bagian') == 'phi' ? 'selected' : '' }}>PHI</option>
+                                    <option value="hukum" {{ request('bagian') == 'hukum' ? 'selected' : '' }}>Hukum</option>
                                 </optgroup>
                                 <optgroup label="Kesekretariatan">
-                                    <option value="ptip" {{ request('bagian') == 'ptip' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>PTIP</option>
-                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Umum & Keuangan</option>
-                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' && $jenisLaporan == 'bulanan' ? 'selected' : '' }}>Kepegawaian</option>
+                                    <option value="ptip" {{ request('bagian') == 'ptip' ? 'selected' : '' }}>PTIP</option>
+                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' ? 'selected' : '' }}>Umum & Keuangan</option>
+                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' ? 'selected' : '' }}>Kepegawaian</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -147,37 +158,36 @@
         <div id="form-tahunan" class="tab-content {{ $jenisLaporan == 'tahunan' ? 'block' : 'hidden' }}">
             <div class="bg-white rounded-lg shadow-md p-6">
                 <form action="{{ route('laporan') }}" method="GET">
-            <input type="hidden" name="jenis_laporan" value="tahunan">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                    <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Pilih Tahun</option>
-                        @for($year = 2030; $year >= 2025; $year--)
-                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endfor
-                    </select>
-                </div>
+                    <input type="hidden" name="jenis_laporan" value="tahunan">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                            <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih Tahun</option>
+                                @for($year = 2030; $year >= 2025; $year--)
+                                    <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endfor
+                            </select>
+                        </div>
                         
                         <!-- Bagian dropdown untuk super_admin -->
                         @if(auth()->user()->role === 'super_admin')
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bagian</label>
                             <select name="bagian" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="all" {{ request('bagian') == 'all' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Semua Bagian</option>
                                 <optgroup label="Perkara">
-                                    <option value="perdata" {{ request('bagian') == 'perdata' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Perdata</option>
-                                    <option value="pidana" {{ request('bagian') == 'pidana' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Pidana</option>
-                                    <option value="tipikor" {{ request('bagian') == 'tipikor' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Tipikor</option>
-                                    <option value="phi" {{ request('bagian') == 'phi' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>PHI</option>
-                                    <option value="hukum" {{ request('bagian') == 'hukum' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Hukum</option>
+                                    <option value="perdata" {{ request('bagian') == 'perdata' ? 'selected' : '' }}>Perdata</option>
+                                    <option value="pidana" {{ request('bagian') == 'pidana' ? 'selected' : '' }}>Pidana</option>
+                                    <option value="tipikor" {{ request('bagian') == 'tipikor' ? 'selected' : '' }}>Tipikor</option>
+                                    <option value="phi" {{ request('bagian') == 'phi' ? 'selected' : '' }}>PHI</option>
+                                    <option value="hukum" {{ request('bagian') == 'hukum' ? 'selected' : '' }}>Hukum</option>
                                 </optgroup>
                                 <optgroup label="Kesekretariatan">
-                                    <option value="ptip" {{ request('bagian') == 'ptip' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>PTIP</option>
-                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Umum & Keuangan</option>
-                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>Kepegawaian</option>
+                                    <option value="ptip" {{ request('bagian') == 'ptip' ? 'selected' : '' }}>PTIP</option>
+                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' ? 'selected' : '' }}>Umum & Keuangan</option>
+                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' ? 'selected' : '' }}>Kepegawaian</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -225,10 +235,10 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Triwulan</label>
                             <select name="triwulan" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Triwulan</option>
-                                <option value="1" {{ request('triwulan') == 1 && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Triwulan 1 (Januari-Maret)</option>
-                                <option value="2" {{ request('triwulan') == 2 && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Triwulan 2 (April-Juni)</option>
-                                <option value="3" {{ request('triwulan') == 3 && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Triwulan 3 (Juli-September)</option>
-                                <option value="4" {{ request('triwulan') == 4 && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Triwulan 4 (Oktober-Desember)</option>
+                                <option value="1" {{ request('triwulan') == 1 ? 'selected' : '' }}>Triwulan 1 (Januari-Maret)</option>
+                                <option value="2" {{ request('triwulan') == 2 ? 'selected' : '' }}>Triwulan 2 (April-Juni)</option>
+                                <option value="3" {{ request('triwulan') == 3 ? 'selected' : '' }}>Triwulan 3 (Juli-September)</option>
+                                <option value="4" {{ request('triwulan') == 4 ? 'selected' : '' }}>Triwulan 4 (Oktober-Desember)</option>
                             </select>
                         </div>
                         
@@ -236,11 +246,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
                             <select name="tahun" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Pilih Tahun</option>
-                        @for($year = 2030; $year >= 2025; $year--)
-                            <option value="{{ $year }}" {{ request('tahun') == $year && $jenisLaporan == 'tahunan' ? 'selected' : '' }}>
-                                {{ $year }}
-                            </option>
-                        @endfor
+                                @for($year = 2030; $year >= 2025; $year--)
+                                    <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>
+                                        {{ $year }}
+                                    </option>
+                                @endfor
                             </select>
                         </div>
                         
@@ -249,18 +259,17 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bagian</label>
                             <select name="bagian" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="all" {{ request('bagian') == 'all' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Semua Bagian</option>
                                 <optgroup label="Perkara">
-                                    <option value="perdata" {{ request('bagian') == 'perdata' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Perdata</option>
-                                    <option value="pidana" {{ request('bagian') == 'pidana' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Pidana</option>
-                                    <option value="tipikor" {{ request('bagian') == 'tipikor' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Tipikor</option>
-                                    <option value="phi" {{ request('bagian') == 'phi' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>PHI</option>
-                                    <option value="hukum" {{ request('bagian') == 'hukum' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Hukum</option>
+                                    <option value="perdata" {{ request('bagian') == 'perdata' ? 'selected' : '' }}>Perdata</option>
+                                    <option value="pidana" {{ request('bagian') == 'pidana' ? 'selected' : '' }}>Pidana</option>
+                                    <option value="tipikor" {{ request('bagian') == 'tipikor' ? 'selected' : '' }}>Tipikor</option>
+                                    <option value="phi" {{ request('bagian') == 'phi' ? 'selected' : '' }}>PHI</option>
+                                    <option value="hukum" {{ request('bagian') == 'hukum' ? 'selected' : '' }}>Hukum</option>
                                 </optgroup>
                                 <optgroup label="Kesekretariatan">
-                                    <option value="ptip" {{ request('bagian') == 'ptip' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>PTIP</option>
-                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Umum & Keuangan</option>
-                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' && $jenisLaporan == 'triwulan' ? 'selected' : '' }}>Kepegawaian</option>
+                                    <option value="ptip" {{ request('bagian') == 'ptip' ? 'selected' : '' }}>PTIP</option>
+                                    <option value="umum_keuangan" {{ request('bagian') == 'umum_keuangan' ? 'selected' : '' }}>Umum & Keuangan</option>
+                                    <option value="kepegawaian" {{ request('bagian') == 'kepegawaian' ? 'selected' : '' }}>Kepegawaian</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -452,27 +461,54 @@
                                 <span class="text-gray-400">-</span>
                             @endif
                         </td>
+                        
+                        <!-- Target Column - Different format for different types -->
+                        @if(in_array($item->jenis, $jenisKesekretariatan))
+                        <td class="px-6 py-4 text-center font-medium">
+                            {{ number_format($item->target, 0) }}
+                        </td>
+                        @else
                         <td class="px-6 py-4 text-center font-medium {{ $item->target >= 90 ? 'text-green-600' : ($item->target >= 70 ? 'text-yellow-600' : 'text-red-600') }}">
                             {{ number_format($item->target, 2) }}%
                         </td>
+                        @endif
+                        
+                        <!-- Input Column -->
                         <td class="px-6 py-4">
                             <div class="text-sm">
                                 <div class="mb-1">
-                                    <span class="font-medium text-gray-600">Input 1:</span> 
-                                    <span class="text-gray-800">{{ $item->input_1 }}</span>
+                                    <span class="font-medium text-gray-600">{{ $item->label_input_1 ?? 'Input 1' }}:</span> 
+                                    <span class="text-gray-800">{{ number_format($item->input_1 ?? 0, 0) }}</span>
                                 </div>
                                 <div>
-                                    <span class="font-medium text-gray-600">Input 2:</span> 
-                                    <span class="text-gray-800">{{ $item->input_2 }}</span>
+                                    <span class="font-medium text-gray-600">{{ $item->label_input_2 ?? 'Input 2' }}:</span> 
+                                    <span class="text-gray-800">
+                                        @if(shouldShowInput2($item))
+                                            {{ number_format($item->input_2 ?? 0, 0) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </span>
                                 </div>
                             </div>
                         </td>
+                        
+                        <!-- Realisasi Column - Different format for different types -->
+                        @if(in_array($item->jenis, $jenisKesekretariatan))
+                        <td class="px-6 py-4 text-center font-medium">
+                            {{ number_format($item->realisasi, 0) }}
+                        </td>
+                        @else
                         <td class="px-6 py-4 text-center font-medium {{ $item->realisasi >= 90 ? 'text-green-600' : ($item->realisasi >= 70 ? 'text-yellow-600' : 'text-red-600') }}">
                             {{ number_format($item->realisasi, 2) }}%
                         </td>
+                        @endif
+                        
+                        <!-- Capaian Column -->
                         <td class="px-6 py-4 text-center font-bold {{ $item->capaian >= 90 ? 'text-green-600' : ($item->capaian >= 70 ? 'text-yellow-600' : 'text-red-600') }}">
                             {{ number_format($item->capaian, 2) }}%
                         </td>
+                        
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
                                 {{ $item->tanggal->format('d/m/Y') }}

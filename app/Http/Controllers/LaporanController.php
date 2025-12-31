@@ -183,70 +183,149 @@ class LaporanController extends Controller
         $jenisKepanitraan = ['perdata', 'pidana', 'tipikor', 'phi', 'hukum'];
         $jenisKesekretariatan = ['ptip', 'umum_keuangan', 'kepegawaian'];
         
-        if (in_array($jenis, $jenisKepanitraan)) {
-            // Model Kepanitraan (Perkara)
-            $query->select([
-                'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
-                'label_input_1', 'label_input_2', 'input_1', 'input_2', 
-                'realisasi', 'capaian', 'status_capaian',
-                'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
-                'bulan', 'tahun', 'created_at', 'rumus', 'tipe_input'
-            ]);
-        } elseif (in_array($jenis, $jenisKesekretariatan)) {
-            // Model Kesekretariatan
-            $query->select([
-                'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
-                'label_input_1', 'input_1',
-                'capaian', 'status_capaian',
-                'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
-                'bulan', 'tahun', 'created_at'
-            ]);
-        } else {
-            // Fallback ke semua kolom
-            $query->select('*');
-        }
+        // Untuk semua model, ambil semua kolom yang diperlukan
+        $query->select([
+            'id', 'sasaran_strategis', 'indikator_kinerja', 'target', 
+            'label_input_1', 'label_input_2', 'input_1', 'input_2', 
+            'realisasi', 'capaian', 'status_capaian',
+            'hambatan', 'rekomendasi', 'tindak_lanjut', 'keberhasilan',
+            'bulan', 'tahun', 'created_at', 'rumus', 'tipe_input'
+        ]);
 
+        // Filter berdasarkan periode
         if ($jenisLaporan == 'bulanan') {
             if ($bulan && $tahun) {
-                $query->whereMonth('created_at', $bulan)
-                      ->whereYear('created_at', $tahun);
+                $query->where('bulan', $bulan)
+                      ->where('tahun', $tahun);
             } elseif ($tahun) {
-                $query->whereYear('created_at', $tahun);
+                $query->where('tahun', $tahun);
             }
         } elseif ($jenisLaporan == 'tahunan') {
             if ($tahun) {
-                $query->whereYear('created_at', $tahun);
+                $query->where('tahun', $tahun);
             }
         } elseif ($jenisLaporan == 'triwulan' && $triwulan && $tahun) {
             list($startMonth, $endMonth) = $this->getTriwulanMonths($triwulan);
-            $query->whereYear('created_at', $tahun)
-                  ->whereMonth('created_at', '>=', $startMonth)
-                  ->whereMonth('created_at', '<=', $endMonth);
+            $query->where('tahun', $tahun)
+                  ->whereBetween('bulan', [$startMonth, $endMonth]);
         }
 
-        return $query->get()
-            ->map(function ($item) use ($jenis) {
-                $item->jenis = $jenis;
-                $item->tanggal = $item->created_at;
-                
-                // Pastikan nilai default untuk kolom analisis
-                $item->hambatan = $item->hambatan ?? '-';
-                $item->rekomendasi = $item->rekomendasi ?? '-';
-                $item->tindak_lanjut = $item->tindak_lanjut ?? '-';
-                $item->keberhasilan = $item->keberhasilan ?? '-';
-                
-                // Set nilai default untuk input_2 jika tidak ada (untuk kesekretariatan)
-                if (!property_exists($item, 'input_2')) {
-                    $item->input_2 = null;
-                }
-                
-                // Set nilai default untuk realisasi jika tidak ada (untuk kesekretariatan)
-                if (!property_exists($item, 'realisasi')) {
-                    $item->realisasi = null;
-                }
-                
-                return $item;
-            });
+        $data = $query->get();
+
+        // Format data berdasarkan jenis
+        return $data->map(function ($item) use ($jenis, $jenisKepanitraan, $jenisKesekretariatan) {
+            $item->jenis = $jenis;
+            $item->tanggal = $item->created_at ? Carbon::parse($item->created_at) : now();
+            
+            // Format data berdasarkan jenis
+            if (in_array($jenis, $jenisKepanitraan)) {
+                $item = $this->formatKepanitraanData($item);
+            } elseif (in_array($jenis, $jenisKesekretariatan)) {
+                $item = $this->formatKesekretariatanData($item);
+            }
+            
+            // Pastikan nilai default untuk kolom analisis
+            $item->hambatan = $item->hambatan ?? '-';
+            $item->rekomendasi = $item->rekomendasi ?? '-';
+            $item->tindak_lanjut = $item->tindak_lanjut ?? '-';
+            $item->keberhasilan = $item->keberhasilan ?? '-';
+            
+            // Pastikan nilai default untuk input yang kosong
+            $item->input_1 = $item->input_1 ?? 0;
+            // Jangan ubah input_2 menjadi 0 jika null, pertahankan nilai asli dari database
+            if (!isset($item->input_2)) {
+                $item->input_2 = null;
+            }
+            $item->realisasi = $item->realisasi ?? 0;
+            $item->capaian = $item->capaian ?? 0;
+            $item->target = $item->target ?? 0;
+            
+            return $item;
+        });
+    }
+
+    /**
+     * Format data khusus untuk bagian kepanitraan
+     */
+    private function formatKepanitraanData($item)
+    {
+        // Tentukan apakah menggunakan input_2 berdasarkan tipe_input
+        // Jika tipe_input = 2 atau ada nilai di input_2, maka gunakan input_2
+        if (isset($item->tipe_input) && $item->tipe_input == 2) {
+            $item->use_input_2 = true;
+        } elseif (isset($item->tipe_input) && $item->tipe_input == 'dua_input') {
+            $item->use_input_2 = true;
+        } else {
+            // Default: jika ada nilai di input_2 (tidak null), anggap menggunakan input_2
+            $item->use_input_2 = ($item->input_2 !== null && $item->input_2 !== '');
+        }
+        
+        // Pastikan realisasi ada
+        if (empty($item->realisasi) && $item->realisasi !== 0) {
+            // Jika tidak ada realisasi, hitung berdasarkan input
+            // Ini hanya fallback, karena seharusnya realisasi sudah dihitung saat input data
+            if ($item->use_input_2 && $item->input_2 > 0) {
+                // Jika menggunakan 2 input, realisasi = input_1 / input_2 * 100
+                $item->realisasi = $item->input_2 > 0 ? ($item->input_1 / $item->input_2) * 100 : 0;
+            } else {
+                // Jika 1 input, realisasi = input_1
+                $item->realisasi = $item->input_1;
+            }
+        }
+        
+        // Hitung capaian jika belum ada
+        if (empty($item->capaian) && $item->capaian !== 0 && $item->target > 0) {
+            $item->capaian = ($item->realisasi / $item->target) * 100;
+            
+            // Tentukan status capaian
+            if ($item->capaian >= 90) {
+                $item->status_capaian = 'Sangat Baik';
+            } elseif ($item->capaian >= 70) {
+                $item->status_capaian = 'Baik';
+            } elseif ($item->capaian > 0) {
+                $item->status_capaian = 'Cukup';
+            } else {
+                $item->status_capaian = 'Belum Tercapai';
+            }
+        }
+        
+        return $item;
+    }
+
+    /**
+     * Format data khusus untuk bagian kesekretariatan
+     */
+    private function formatKesekretariatanData($item)
+    {
+        // Kesekretariatan hanya menggunakan 1 input
+        $item->use_input_2 = false;
+        
+        // Untuk kesekretariatan, realisasi = input_1
+        if (empty($item->realisasi) && $item->realisasi !== 0) {
+            $item->realisasi = $item->input_1 ?? 0;
+        }
+        
+        // Hitung capaian jika belum ada
+        if (empty($item->capaian) && $item->capaian !== 0 && $item->target > 0) {
+            if ($item->target > 0) {
+                $item->capaian = ($item->realisasi / $item->target) * 100;
+            } else {
+                $item->capaian = 0;
+            }
+            
+            // Tentukan status capaian
+            if ($item->capaian >= 90) {
+                $item->status_capaian = 'Sangat Baik';
+            } elseif ($item->capaian >= 70) {
+                $item->status_capaian = 'Baik';
+            } elseif ($item->capaian > 0) {
+                $item->status_capaian = 'Cukup';
+            } else {
+                $item->status_capaian = 'Belum Tercapai';
+            }
+        }
+        
+        return $item;
     }
 
     private function getTriwulanMonths($triwulan)
@@ -277,5 +356,27 @@ class LaporanController extends Controller
             'umum_keuangan' => UmumKeuangan::class,
             'kepegawaian' => Kepegawaian::class,
         ];
+    }
+    
+    /**
+     * Helper function untuk memformat angka
+     */
+    private function formatAngka($value)
+    {
+        if (is_numeric($value) && $value != 0) {
+            return number_format($value, 0, ',', '.');
+        }
+        return '-';
+    }
+    
+    /**
+     * Helper function untuk memformat persentase
+     */
+    private function formatPersen($value)
+    {
+        if (is_numeric($value)) {
+            return number_format($value, 1, ',', '.') . '%';
+        }
+        return '-';
     }
 }

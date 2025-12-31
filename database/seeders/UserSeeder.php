@@ -100,8 +100,8 @@ class UserSeeder extends Seeder
                 'role' => 'read_only'
             ],
             [
-                'name' => 'Panmud',
-                'email' => 'panmud@esidak.com',
+                'name' => 'Panitra',
+                'email' => 'panitra@esidak.com',
                 'password' => Hash::make('password'),
                 'role' => 'read_only'
             ],

@@ -119,18 +119,18 @@
                 </div>
                 
                 <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-    <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-        <option value="" selected>Pilih Tahun</option>
-        @php
-            $maxYear = 2030;
-            $minYear = 2025;
-        @endphp
-        @for($year = $maxYear; $year >= $minYear; $year--)
-            <option value="{{ $year }}">{{ $year }}</option>
-        @endfor
-    </select>
-</div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                    <select id="filterTahun" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                        <option value="" selected>Pilih Tahun</option>
+                        @php
+                            $maxYear = 2030;
+                            $minYear = 2025;
+                        @endphp
+                        @for($year = $maxYear; $year >= $minYear; $year--)
+                            <option value="{{ $year }}">{{ $year }}</option>
+                        @endfor
+                    </select>
+                </div>
                 
                 <div class="flex items-end">
                     <button id="cariBtn" class="w-full bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
@@ -164,11 +164,11 @@
                                     </span>
                                     <span class="text-xs text-gray-500">Target: {{ number_format($item->target, 2) }}%</span>
                                     @if($item->input_1 !== null)
-                                        <span class="text-xs text-gray-500">Input 1: {{ $item->input_1 }}</span>
+                                        <span class="text-xs text-gray-500">{{ $item->label_input_1 }}: {{ $item->input_1 }}</span>
                                     @endif
                                     @if($item->capaian !== null)
-                                        <span class="text-xs font-medium @if($item->capaian >= 1) text-green-600 @elseif($item->capaian >= 0.8) text-yellow-600 @else text-red-600 @endif">
-                                            Capaian: {{ number_format($item->capaian, 2) }}
+                                        <span class="text-xs font-medium @if($item->capaian >= 100) text-green-600 @elseif($item->capaian >= 80) text-yellow-600 @else text-red-600 @endif">
+                                            Capaian: {{ number_format($item->capaian, 2) }}%
                                         </span>
                                     @endif
                                     @if($item->hambatan || $item->rekomendasi || $item->tindak_lanjut || $item->keberhasilan)
@@ -193,7 +193,7 @@
                                 <div>
                                     <dt class="text-xs text-gray-500 font-medium">Data Input</dt>
                                     <dd class="text-sm text-gray-900 mt-1">{{ $item->label_input_1 }}</dd>
-                                    <dd class="text-sm text-gray-900 mt-1 font-semibold">{{ $item->input_1 }}</dd>
+                                    <dd class="text-sm text-gray-900 mt-1 font-semibold">{{ $item->input_1 ?? '-' }}</dd>
                                 </div>
                                 
                                 <div>
@@ -206,8 +206,8 @@
                                     <dd class="text-sm text-gray-900 mt-1">
                                         @if($item->capaian !== null)
                                             <div class="flex flex-col">
-                                                <span class="font-semibold @if($item->capaian >= 1) text-green-600 @elseif($item->capaian >= 0.8) text-yellow-600 @else text-red-600 @endif">
-                                                    {{ number_format($item->capaian, 2) }}
+                                                <span class="font-semibold @if($item->capaian >= 100) text-green-600 @elseif($item->capaian >= 80) text-yellow-600 @else text-red-600 @endif">
+                                                    {{ number_format($item->capaian, 2) }}%
                                                 </span>
                                                 <span class="text-xs @if($item->status_capaian == 'Tercapai') text-green-500 @elseif($item->status_capaian == 'Hampir Tercapai') text-yellow-500 @else text-red-500 @endif">
                                                     {{ $item->status_capaian ?? '-' }}
@@ -230,11 +230,11 @@
                             <div class="mt-4">
                                 <div class="flex justify-between text-xs text-gray-500 mb-1">
                                     <span>Capaian Progress</span>
-                                    <span>{{ number_format($item->capaian * 100, 1) }}%</span>
+                                    <span>{{ number_format(min($item->capaian, 100), 1) }}%</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="h-2 rounded-full @if($item->capaian >= 1) bg-green-500 @elseif($item->capaian >= 0.8) bg-yellow-500 @else bg-red-500 @endif" 
-                                         style="width: {{ min($item->capaian * 100, 100) }}%">
+                                    <div class="h-2 rounded-full @if($item->capaian >= 100) bg-green-500 @elseif($item->capaian >= 80) bg-yellow-500 @else bg-red-500 @endif" 
+                                         style="width: {{ min($item->capaian, 100) }}%">
                                     </div>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500 mt-1">
@@ -399,7 +399,19 @@
                                 @if(auth()->user()->isSuperAdmin() || auth()->user()->role == 'ptip')
                                 <button type="button" class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-btn transition-colors duration-150" 
                                         data-id="{{ $item->id }}"
-                                        data-jenis="ptip">
+                                        data-jenis="ptip"
+                                        data-sasaran="{{ $item->sasaran_strategis }}"
+                                        data-indikator="{{ $item->indikator_kinerja }}"
+                                        data-target="{{ $item->target }}"
+                                        data-label-input-1="{{ $item->label_input_1 }}"
+                                        data-input-1="{{ $item->input_1 }}"
+                                        data-bulan="{{ $item->bulan }}"
+                                        data-tahun="{{ $item->tahun }}"
+                                        data-hambatan="{{ $item->hambatan }}"
+                                        data-rekomendasi="{{ $item->rekomendasi }}"
+                                        data-tindak-lanjut="{{ $item->tindak_lanjut }}"
+                                        data-keberhasilan="{{ $item->keberhasilan }}"
+                                        data-user-type="{{ auth()->user()->isSuperAdmin() ? 'superadmin' : 'admin' }}">
                                     Edit
                                 </button>
                                 @endif
@@ -543,8 +555,9 @@
             <form action="{{ route('store.ptip') }}" method="POST" id="inputDataForm">
                 @csrf
                 <input type="hidden" name="jenis" value="ptip">
-                <input type="hidden" name="capaian" id="capaian_hidden">
-                <input type="hidden" name="status_capaian" id="status_capaian_hidden">
+                <input type="hidden" name="parent_id" id="parent_id_hidden" value="{{ old('parent_id') }}">
+                <input type="hidden" name="capaian" id="capaian_hidden" value="{{ old('capaian') }}">
+                <input type="hidden" name="status_capaian" id="status_capaian_hidden" value="{{ old('status_capaian') }}">
                 
                 <div class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -575,85 +588,90 @@
                         </div>
                     </div>
 
-                    <div id="existing_sasaran_form">
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                            <input type="text" id="sasaranDisplay" readonly
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                            <select name="parent_id" id="ptipSelect" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Indikator Kinerja</option>
-                                @foreach($sasaranStrategis as $sasaran)
-                                    <option value="{{ $sasaran->id }}" 
-                                            data-sasaran="{{ $sasaran->sasaran_strategis }}"
-                                            data-target="{{ $sasaran->target }}"
-                                            data-label="{{ $sasaran->label_input_1 }}"
-                                            {{ old('parent_id') == $sasaran->id ? 'selected' : '' }}>
-                                        {{ $sasaran->indikator_kinerja }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('parent_id')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <!-- Target (Readonly) -->
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
-                            <input type="text" id="targetDisplay" readonly
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
-                        </div>
+                    <!-- SASARAN STRATEGIS (ditampilkan otomatis) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                        <input type="text" id="sasaran_display" readonly
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50"
+                               value="{{ old('sasaran_strategis') }}"
+                               placeholder="Sasaran strategis akan muncul setelah memilih indikator kinerja">
                     </div>
 
-                    <!-- Input untuk nilai -->
+                    <!-- DROPDOWN INDIKATOR KINERJA -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            <span id="label_input_1_display">Label Input 1</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                        <select id="ptipSelect" required
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                            <option value="">Pilih Indikator Kinerja</option>
+                            @foreach($sasaranStrategis as $sasaran)
+                                <option value="{{ $sasaran->id }}" 
+                                        data-sasaran="{{ $sasaran->sasaran_strategis }}"
+                                        data-target="{{ $sasaran->target }}"
+                                        data-label="{{ $sasaran->label_input_1 }}"
+                                        {{ old('parent_id') == $sasaran->id ? 'selected' : '' }}>
+                                    {{ $sasaran->indikator_kinerja }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('parent_id')
+                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                        @enderror
+                        @if($sasaranStrategis->isEmpty())
+                            <p class="text-xs text-red-500 mt-1">Belum ada sasaran strategis. Silakan tambah di menu Sasaran Strategis terlebih dahulu.</p>
+                        @endif
+                    </div>
+
+                    <!-- TARGET -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
+                        <input type="text" id="target_display" readonly
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50"
+                               value="{{ old('target') }}"
+                               placeholder="Target akan muncul setelah memilih indikator kinerja">
+                        <p class="text-xs text-gray-500 mt-1">Target dalam persentase (0-100%)</p>
+                    </div>
+
+                    <!-- INPUT 1 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" id="label_input_1_display">
+                            Label input
                         </label>
                         <input type="number" name="input_1" id="input_1" required min="0"
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                               value="{{ old('input_1') }}"
-                               placeholder="Masukkan nilai">
+                               value="{{ old('input_1') }}">
                         @error('input_1')
                             <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
 
-                    <!-- Hasil Perhitungan Capaian -->
-                    <div class="bg-gray-50 rounded-xl p-4 mt-4">
+                    <!-- HASIL PERHITUNGAN -->
+                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
                         <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-sm font-medium text-gray-700">Hasil Perhitungan Capaian</h4>
-                            <button type="button" id="hitungCapaianBtn" 
-                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200">
-                                Hitung Capaian
+                            <h4 class="text-sm font-medium text-gray-700">Hasil Perhitungan</h4>
+                            <button type="button" id="hitungBtn" 
+                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                Hitung
                             </button>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Capaian</label>
+                                <label class="block text-xs text-gray-500 font-medium mb-1">Capaian (%)</label>
                                 <input type="text" id="capaian_result" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium">
+                                       class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-gray-900 font-medium">
                             </div>
                             
                             <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Status</label>
+                                <label class="block text-xs text-gray-500 font-medium mb-1">Status Capaian</label>
                                 <input type="text" id="status_capaian_result" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Persentase</label>
-                                <input type="text" id="persentase_capaian" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
+                                       class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-gray-900">
                             </div>
                         </div>
                         
+                        <!-- Progress Bar -->
                         <div class="mt-4">
                             <div class="flex justify-between text-xs text-gray-500 mb-1">
                                 <span>Progress Capaian</span>
@@ -661,6 +679,10 @@
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
                                 <div id="progress_bar" class="h-2 rounded-full bg-blue-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0%</span>
+                                <span>100%</span>
                             </div>
                         </div>
                     </div>
@@ -677,7 +699,7 @@
                                 </label>
                                 <textarea name="hambatan" id="hambatan" rows="3"
                                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none"
-                                          placeholder="Jelaskan hambatan atau kendala yang dihadapi dalam penyelesaian tugas">{{ old('hambatan') }}</textarea>
+                                          placeholder="Jelaskan hambatan atau kendala yang dihadapi">{{ old('hambatan') }}</textarea>
                                 <p class="text-xs text-gray-500 mt-1">Opsional. Maksimal 2000 karakter.</p>
                             </div>
                             
@@ -810,7 +832,7 @@
                                         data-capaian="{{ $item->capaian }}">
                                     {{ $item->indikator_kinerja }} ({{ $item->nama_bulan }} {{ $item->tahun }})
                                     @if($item->capaian)
-                                        - Capaian: {{ number_format($item->capaian, 2) }}
+                                        - Capaian: {{ number_format($item->capaian, 2) }}%
                                     @endif
                                 </option>
                             @endforeach
@@ -928,7 +950,7 @@
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300 flex items-center justify-center p-4">
     <div class="relative bg-white rounded-2xl border border-gray-200 w-full max-w-2xl transform transition-all duration-300 scale-95">
         <div class="p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Data PTIP</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4" id="editModalTitle">Edit Data PTIP</h3>
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
@@ -938,168 +960,10 @@
                 <input type="hidden" name="status_capaian" id="edit_status_capaian_hidden">
                 
                 <div class="space-y-4 mb-4" style="max-height: 60vh; overflow-y: auto;">
-                    <!-- SASARAN STRATEGIS -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
-                        @if(auth()->user()->isSuperAdmin())
-                        <input type="text" name="sasaran_strategis" id="edit_sasaran" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        @else
-                        <input type="text" id="edit_sasaran_display" readonly
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        <input type="hidden" name="sasaran_strategis" id="edit_sasaran">
-                        @endif
+                    <!-- Dynamic form fields akan diisi oleh JavaScript -->
+                    <div id="editFormFields">
+                        <!-- Form fields akan di-generate berdasarkan user type -->
                     </div>
-                    
-                    <!-- INDIKATOR KINERJA -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
-                        @if(auth()->user()->isSuperAdmin())
-                        <input type="text" name="indikator_kinerja" id="edit_indikator" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        @else
-                        <input type="text" id="edit_indikator_display" readonly
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        <input type="hidden" name="indikator_kinerja" id="edit_indikator">
-                        @endif
-                    </div>
-                    
-                    <!-- TARGET -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
-                        @if(auth()->user()->isSuperAdmin())
-                        <input type="number" name="target" id="edit_target" step="0.01" required min="0" max="100"
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        @else
-                        <input type="text" id="edit_target_display" readonly
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-900">
-                        <input type="hidden" name="target" id="edit_target">
-                        @endif
-                    </div>
-                    
-                    <!-- LABEL INPUT 1 (Hanya untuk Super Admin) -->
-                    @if(auth()->user()->isSuperAdmin())
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
-                        <input type="text" name="label_input_1" id="edit_label_input_1" required
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                    </div>
-                    @endif
-
-                    <!-- INPUT 1 (Editable untuk semua user) -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-sm font-medium text-gray-700">
-                                <span id="edit_label_input_1_display">Input 1</span>
-                            </label>
-                            <button type="button" id="editHitungCapaianBtn" 
-                                    class="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200">
-                                Hitung Capaian
-                            </button>
-                        </div>
-                        <input type="number" name="input_1" id="edit_input_1" required min="0"
-                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                    </div>
-
-                    <!-- HASIL PERHITUNGAN CAPAIAN -->
-                    <div class="bg-gray-50 rounded-xl p-4 mt-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="text-sm font-medium text-gray-700">Hasil Perhitungan Capaian</h4>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Capaian</label>
-                                <input type="text" id="edit_capaian_result" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Status</label>
-                                <input type="text" id="edit_status_capaian_result" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs text-gray-500 font-medium mb-1">Persentase</label>
-                                <input type="text" id="edit_persentase_capaian" readonly
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900">
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <div class="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Progress Capaian</span>
-                                <span id="edit_progress_percent">0%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div id="edit_progress_bar" class="h-2 rounded-full" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ANALISIS DAN EVALUASI (Editable untuk semua user) -->
-                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <h4 class="text-sm font-medium text-gray-700 mb-4">Analisis dan Evaluasi</h4>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Hambatan yang Dihadapi
-                            </label>
-                            <textarea name="hambatan" id="edit_hambatan" rows="2"
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-                                      placeholder="Jelaskan hambatan atau kendala yang dihadapi"></textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Rekomendasi Perbaikan
-                            </label>
-                            <textarea name="rekomendasi" id="edit_rekomendasi" rows="2"
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-                                      placeholder="Berikan rekomendasi untuk perbaikan"></textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Tindak Lanjut yang Dilakukan
-                            </label>
-                            <textarea name="tindak_lanjut" id="edit_tindak_lanjut" rows="2"
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-                                      placeholder="Jelaskan tindak lanjut yang akan atau telah dilakukan"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Keberhasilan yang Dicapai
-                            </label>
-                            <textarea name="keberhasilan" id="edit_keberhasilan" rows="2"
-                                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
-                                      placeholder="Jelaskan keberhasilan atau pencapaian positif"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- BULAN DAN TAHUN (Hanya Super Admin) -->
-                    @if(auth()->user()->isSuperAdmin())
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                            <select name="bulan" id="edit_bulan" required
-                                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
-                                <option value="">Pilih Bulan</option>
-                                @for ($i = 1; $i <= 12; $i++)
-                                    <option value="{{ $i }}">{{ DateTime::createFromFormat('!m', $i)->format('F') }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                            <input type="number" name="tahun" id="edit_tahun" required min="2020"
-                                   class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                        </div>
-                    </div>
-                    @endif
                 </div>
                 
                 <div class="flex justify-end space-x-3 mt-6">
@@ -1107,7 +971,7 @@
                             class="px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium">
                         Batal
                     </button>
-                    <button type="submit" id="editSubmitBtn"
+                    <button type="submit" 
                             class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
                         Update
                     </button>
@@ -1230,325 +1094,555 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ==================== FORM INPUT DATA ====================
+    // ==================== FORM INPUT DATA FUNCTIONALITY ====================
     
-    const ptipSelect = document.getElementById('ptipSelect');
-    const input1 = document.getElementById('input_1');
-    const hitungCapaianBtn = document.getElementById('hitungCapaianBtn');
-    const capaianResult = document.getElementById('capaian_result');
-    const statusCapaianResult = document.getElementById('status_capaian_result');
-    const persentaseCapaian = document.getElementById('persentase_capaian');
-    const progressBar = document.getElementById('progress_bar');
-    const progressPercent = document.getElementById('progress_percent');
-    const capaianHidden = document.getElementById('capaian_hidden');
-    const statusCapaianHidden = document.getElementById('status_capaian_hidden');
-    const resetBtn = document.getElementById('resetBtn');
-    const inputDataForm = document.getElementById('inputDataForm');
-    
-    function updateDisplayFields() {
-        const selectedOption = ptipSelect.options[ptipSelect.selectedIndex];
-        if (selectedOption.value) {
-            document.getElementById('sasaranDisplay').value = selectedOption.getAttribute('data-sasaran');
-            document.getElementById('targetDisplay').value = selectedOption.getAttribute('data-target') + '%';
-            document.getElementById('label_input_1_display').textContent = selectedOption.getAttribute('data-label');
-        } else {
-            document.getElementById('sasaranDisplay').value = '';
-            document.getElementById('targetDisplay').value = '';
-            document.getElementById('label_input_1_display').textContent = 'Label Input 1';
-        }
-    }
-    
-    if (ptipSelect) {
-        ptipSelect.addEventListener('change', updateDisplayFields);
-        if (ptipSelect.value) {
-            updateDisplayFields();
-        }
-    }
-    
-    // Fungsi untuk menghitung capaian via API
-    function calculateCapaian(input1, target, callback) {
-        if (!input1 || !target || target === 0) {
-            alert('Harap isi nilai input dan pastikan target tidak nol.');
-            return;
+    // Setup untuk form input data PTIP
+    function setupInputDataForm() {
+        const ptipSelect = document.getElementById('ptipSelect');
+        const parentIdHidden = document.getElementById('parent_id_hidden');
+        const sasaranDisplay = document.getElementById('sasaran_display');
+        const targetDisplay = document.getElementById('target_display');
+        const labelInput1Display = document.getElementById('label_input_1_display');
+        const inputBulan = document.getElementById('input_bulan');
+        const inputTahun = document.getElementById('input_tahun');
+        const hitungBtn = document.getElementById('hitungBtn');
+        const input1 = document.getElementById('input_1');
+        const resetBtn = document.getElementById('resetBtn');
+        const simpanBtn = document.getElementById('simpanBtn');
+        const capaianHidden = document.getElementById('capaian_hidden');
+        const statusCapaianHidden = document.getElementById('status_capaian_hidden');
+        
+        // Fungsi untuk mengisi form fields dari dropdown yang dipilih
+        function fillFormFields(selectedOption) {
+            if (selectedOption.value) {
+                parentIdHidden.value = selectedOption.value;
+                sasaranDisplay.value = selectedOption.getAttribute('data-sasaran');
+                targetDisplay.value = selectedOption.getAttribute('data-target') + '%';
+                labelInput1Display.textContent = selectedOption.getAttribute('data-label');
+            } else {
+                resetFormFields();
+            }
         }
         
-        fetch('/calculate-capaian', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                input_1: parseFloat(input1),
-                target: parseFloat(target)
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                callback(data);
-            } else {
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghitung capaian.');
-        });
-    }
-    
-    // Hitung capaian untuk form input data
-    if (hitungCapaianBtn) {
-        hitungCapaianBtn.addEventListener('click', function() {
-            const selectedOption = ptipSelect.options[ptipSelect.selectedIndex];
-            const target = selectedOption.getAttribute('data-target');
-            const inputValue = input1.value;
+        // Fungsi untuk reset semua field form
+        function resetFormFields() {
+            parentIdHidden.value = '';
+            sasaranDisplay.value = '';
+            targetDisplay.value = '';
+            labelInput1Display.textContent = 'Label input';
             
-            if (!selectedOption.value || !target || !inputValue) {
-                alert('Harap pilih indikator kinerja dan isi nilai input dengan benar.');
-                return;
-            }
+            // Reset hasil perhitungan
+            document.getElementById('capaian_result').value = '';
+            document.getElementById('status_capaian_result').value = '';
+            document.getElementById('progress_percent').textContent = '0%';
+            document.getElementById('progress_bar').style.width = '0%';
+            document.getElementById('progress_bar').className = 'h-2 rounded-full bg-blue-500';
             
-            calculateCapaian(inputValue, target, function(data) {
-                // Update tampilan
-                capaianResult.value = data.capaian;
-                statusCapaianResult.value = data.status;
-                persentaseCapaian.value = data.persentase;
-                
-                // Update progress bar
-                progressBar.style.width = data.progress_width + '%';
-                progressPercent.textContent = data.progress_width.toFixed(1) + '%';
-                
-                // Update progress bar color
-                if (parseFloat(data.capaian) >= 1) {
-                    progressBar.className = 'h-2 rounded-full bg-green-500';
-                } else if (parseFloat(data.capaian) >= 0.8) {
-                    progressBar.className = 'h-2 rounded-full bg-yellow-500';
-                } else {
-                    progressBar.className = 'h-2 rounded-full bg-red-500';
-                }
-                
-                // Simpan nilai untuk form submission
-                capaianHidden.value = data.capaian_raw;
-                statusCapaianHidden.value = data.status;
-            });
-        });
-    }
-    
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-            inputDataForm.reset();
-            document.getElementById('sasaranDisplay').value = '';
-            document.getElementById('targetDisplay').value = '';
-            capaianResult.value = '';
-            statusCapaianResult.value = '';
-            persentaseCapaian.value = '';
-            progressBar.style.width = '0%';
-            progressPercent.textContent = '0%';
-            progressBar.className = 'h-2 rounded-full bg-blue-500';
             capaianHidden.value = '';
             statusCapaianHidden.value = '';
-        });
+            
+            // Reset kolom analisis
+            document.getElementById('hambatan').value = '';
+            document.getElementById('rekomendasi').value = '';
+            document.getElementById('tindak_lanjut').value = '';
+            document.getElementById('keberhasilan').value = '';
+        }
+        
+        // Event listener untuk dropdown indikator kinerja
+        if (ptipSelect) {
+            ptipSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                fillFormFields(selectedOption);
+            });
+            
+            // Isi form jika ada value yang dipilih
+            if (ptipSelect.value) {
+                const selectedOption = ptipSelect.options[ptipSelect.selectedIndex];
+                fillFormFields(selectedOption);
+            }
+        }
+        
+        // Hitung functionality
+        if (hitungBtn) {
+            hitungBtn.addEventListener('click', async function() {
+                const parentId = parentIdHidden.value;
+                const inputValue = parseFloat(input1.value) || 0;
+                const target = parseFloat(targetDisplay.value.replace('%', '')) || 0;
+                
+                if (!inputBulan.value || !inputTahun.value) {
+                    alert('Silakan pilih bulan dan tahun terlebih dahulu');
+                    return;
+                }
+                
+                if (!parentId) {
+                    alert('Silakan pilih indikator kinerja terlebih dahulu');
+                    return;
+                }
+                
+                if (target === 0) {
+                    alert('Target tidak boleh 0');
+                    return;
+                }
+                
+                // Hitung capaian via API
+                try {
+                    const response = await fetch('/calculate-capaian', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            input_1: inputValue,
+                            target: target
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update tampilan
+                        document.getElementById('capaian_result').value = data.capaian + '%';
+                        document.getElementById('status_capaian_result').value = data.status;
+                        document.getElementById('status_capaian_result').className = `w-full px-3 py-2 border rounded-lg font-medium ${
+                            data.status === 'Tercapai' ? 'text-green-600 border-green-300 bg-green-50' :
+                            data.status === 'Hampir Tercapai' ? 'text-yellow-600 border-yellow-300 bg-yellow-50' :
+                            'text-red-600 border-red-300 bg-red-50'
+                        }`;
+                        
+                        // Update progress bar
+                        const progressWidth = data.progress_width;
+                        document.getElementById('progress_bar').style.width = progressWidth + '%';
+                        document.getElementById('progress_percent').textContent = progressWidth.toFixed(1) + '%';
+                        
+                        // Update progress bar color
+                        if (data.capaian_raw >= 100) {
+                            document.getElementById('progress_bar').className = 'h-2 rounded-full bg-green-500';
+                        } else if (data.capaian_raw >= 80) {
+                            document.getElementById('progress_bar').className = 'h-2 rounded-full bg-yellow-500';
+                        } else {
+                            document.getElementById('progress_bar').className = 'h-2 rounded-full bg-red-500';
+                        }
+                        
+                        // Simpan nilai untuk form submission
+                        capaianHidden.value = data.capaian_raw;
+                        statusCapaianHidden.value = data.status;
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghitung capaian.');
+                }
+            });
+        }
+        
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                document.getElementById('inputDataForm').reset();
+                resetFormFields();
+            });
+        }
+        
+        // Form validation sebelum submit
+        const formInputData = document.getElementById('inputDataForm');
+        if (formInputData) {
+            formInputData.addEventListener('submit', function(e) {
+                if (!inputBulan.value || !inputTahun.value) {
+                    e.preventDefault();
+                    alert('Bulan dan tahun harus diisi');
+                    return;
+                }
+
+                if (!parentIdHidden.value) {
+                    e.preventDefault();
+                    alert('Indikator kinerja harus dipilih');
+                    return;
+                }
+
+                if (!input1.value) {
+                    e.preventDefault();
+                    alert('Data input harus diisi');
+                    return;
+                }
+
+                if (!capaianHidden.value) {
+                    e.preventDefault();
+                    alert('Silakan klik tombol Hitung terlebih dahulu');
+                    return;
+                }
+            });
+        }
     }
     
-    // Validasi sebelum submit form input data
-    if (inputDataForm) {
-        inputDataForm.addEventListener('submit', function(e) {
-            if (!capaianHidden.value || !statusCapaianHidden.value) {
-                e.preventDefault();
-                alert('Harap hitung capaian terlebih dahulu sebelum menyimpan data.');
-                return false;
-            }
-            return true;
-        });
+    // Inisialisasi form input data
+    setupInputDataForm();
+    
+    // ==================== HELPER FUNCTIONS ====================
+    
+    // Helper function untuk generate bulan options
+    function generateMonthOptions(selectedMonth) {
+        const months = [
+            { value: '1', text: 'Januari' },
+            { value: '2', text: 'Februari' },
+            { value: '3', text: 'Maret' },
+            { value: '4', text: 'April' },
+            { value: '5', text: 'Mei' },
+            { value: '6', text: 'Juni' },
+            { value: '7', text: 'Juli' },
+            { value: '8', text: 'Agustus' },
+            { value: '9', text: 'September' },
+            { value: '10', text: 'Oktober' },
+            { value: '11', text: 'November' },
+            { value: '12', text: 'Desember' }
+        ];
+        
+        return months.map(month => 
+            `<option value="${month.value}" ${month.value === selectedMonth ? 'selected' : ''}>${month.text}</option>`
+        ).join('');
+    }
+    
+    // Fungsi untuk hitung capaian via API
+    async function calculateCapaianAPI(input1, target) {
+        try {
+            const response = await fetch('/calculate-capaian', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    input_1: input1,
+                    target: target
+                })
+            });
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
     }
     
     // ==================== MODAL EDIT FUNGSI ====================
     
-    // Fungsi untuk memuat data edit via API
-    function loadEditData(id, jenis) {
-        fetch(`/get-edit-data/${jenis}/${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    populateEditModal(data.data, data.capaian_data, data.is_super_admin);
-                } else {
-                    alert('Gagal memuat data: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memuat data.');
-            });
-    }
-    
     // Fungsi untuk mengisi modal edit
-    function populateEditModal(data, capaianData, isSuperAdmin) {
+    function populateEditModal(data, userType) {
+        let formFields = '';
+        
+        if (userType === 'superadmin') {
+            // Form untuk Super Admin
+            formFields = `
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sasaran Strategis</label>
+                    <input type="text" name="sasaran_strategis" id="edit_sasaran" required
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.sasaran_strategis || ''}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Indikator Kinerja</label>
+                    <input type="text" name="indikator_kinerja" id="edit_indikator" required
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.indikator_kinerja || ''}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Target (%)</label>
+                    <input type="number" name="target" id="edit_target" step="0.01" required min="0" max="100"
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.target || ''}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Label Input 1</label>
+                    <input type="text" name="label_input_1" id="edit_label_input_1" required
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.label_input_1 || ''}">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">${data.label_input_1 || 'Input 1'}</label>
+                    <input type="number" name="input_1" id="edit_input_1" required min="0"
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.input_1 || ''}">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                        <select name="bulan" id="edit_bulan" required
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white">
+                            <option value="">Pilih Bulan</option>
+                            ${generateMonthOptions(data.bulan)}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
+                        <input type="number" name="tahun" id="edit_tahun" required min="2020"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                               value="${data.tahun || ''}">
+                    </div>
+                </div>
+            `;
+        } else {
+            // Form untuk Admin Biasa
+            formFields = `
+                <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Informasi Sasaran Strategis</h4>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-xs text-gray-500">Sasaran Strategis:</span>
+                            <p class="text-sm font-medium text-gray-900">${data.sasaran_strategis || ''}</p>
+                            <input type="hidden" name="sasaran_strategis" value="${data.sasaran_strategis || ''}">
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500">Indikator Kinerja:</span>
+                            <p class="text-sm font-medium text-gray-900">${data.indikator_kinerja || ''}</p>
+                            <input type="hidden" name="indikator_kinerja" value="${data.indikator_kinerja || ''}">
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500">Target:</span>
+                            <p class="text-sm font-medium text-gray-900">${data.target || 0}%</p>
+                            <input type="hidden" name="target" value="${data.target || ''}">
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500">Label Input 1:</span>
+                            <p class="text-sm font-medium text-gray-900">${data.label_input_1 || ''}</p>
+                            <input type="hidden" name="label_input_1" value="${data.label_input_1 || ''}">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">${data.label_input_1 || 'Input 1'}</label>
+                    <input type="number" name="input_1" id="edit_input_1" required min="0"
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                           value="${data.input_1 || ''}">
+                </div>
+
+                <input type="hidden" name="bulan" value="${data.bulan || ''}">
+                <input type="hidden" name="tahun" value="${data.tahun || ''}">
+            `;
+        }
+        
+        // Bagian form analisis dan hasil perhitungan
+        formFields += `
+            <!-- HASIL PERHITUNGAN EDIT -->
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-sm font-medium text-gray-700">Hasil Perhitungan</h4>
+                    <button type="button" id="edit_hitungBtn"
+                            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition duration-200 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Hitung
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 font-medium mb-1">Capaian (%)</label>
+                        <input type="text" id="edit_capaian_result" readonly
+                               class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-gray-900 font-medium"
+                               value="${data.capaian ? data.capaian + '%' : ''}">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-500 font-medium mb-1">Status Capaian</label>
+                        <input type="text" id="edit_status_capaian_result" readonly
+                               class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-gray-900"
+                               value="${data.status_capaian || ''}">
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Progress Capaian</span>
+                        <span id="edit_progress_percent">${data.capaian ? Math.min(data.capaian, 100).toFixed(1) + '%' : '0%'}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="edit_progress_bar" class="h-2 rounded-full ${data.capaian >= 100 ? 'bg-green-500' : data.capaian >= 80 ? 'bg-yellow-500' : 'bg-red-500'}" 
+                             style="width: ${data.capaian ? Math.min(data.capaian, 100) : 0}%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM ANALISIS -->
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <h4 class="text-sm font-medium text-gray-700 mb-4">Analisis dan Evaluasi</h4>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Hambatan yang Dihadapi
+                    </label>
+                    <textarea name="hambatan" id="edit_hambatan" rows="2"
+                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                              placeholder="Jelaskan hambatan atau kendala yang dihadapi">${data.hambatan || ''}</textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Rekomendasi Perbaikan
+                    </label>
+                    <textarea name="rekomendasi" id="edit_rekomendasi" rows="2"
+                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                              placeholder="Berikan rekomendasi untuk perbaikan">${data.rekomendasi || ''}</textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tindak Lanjut yang Dilakukan
+                    </label>
+                    <textarea name="tindak_lanjut" id="edit_tindak_lanjut" rows="2"
+                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                              placeholder="Jelaskan tindak lanjut yang akan atau telah dilakukan">${data.tindak_lanjut || ''}</textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Keberhasilan yang Dicapai
+                    </label>
+                    <textarea name="keberhasilan" id="edit_keberhasilan" rows="2"
+                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                              placeholder="Jelaskan keberhasilan atau pencapaian positif">${data.keberhasilan || ''}</textarea>
+                </div>
+            </div>
+        `;
+        
+        // Isi form fields
+        document.getElementById('editFormFields').innerHTML = formFields;
+        
+        // Set nilai lain
         document.getElementById('edit_id').value = data.id;
-        
-        if (isSuperAdmin) {
-            // Untuk Super Admin - semua field editable
-            document.getElementById('edit_sasaran').value = data.sasaran_strategis || '';
-            document.getElementById('edit_indikator').value = data.indikator_kinerja || '';
-            document.getElementById('edit_target').value = data.target || '';
-            document.getElementById('edit_label_input_1').value = data.label_input_1 || '';
-            document.getElementById('edit_label_input_1_display').textContent = data.label_input_1 || 'Input 1';
-            document.getElementById('edit_bulan').value = data.bulan || '';
-            document.getElementById('edit_tahun').value = data.tahun || '';
-        } else {
-            // Untuk Admin Biasa - hanya input 1 dan analisis yang editable
-            document.getElementById('edit_sasaran_display').value = data.sasaran_strategis || '';
-            document.getElementById('edit_sasaran').value = data.sasaran_strategis || '';
-            document.getElementById('edit_indikator_display').value = data.indikator_kinerja || '';
-            document.getElementById('edit_indikator').value = data.indikator_kinerja || '';
-            document.getElementById('edit_target_display').value = data.target ? data.target + '%' : '';
-            document.getElementById('edit_target').value = data.target || '';
-            // Tampilkan label input 1 untuk admin biasa (readonly)
-            document.getElementById('edit_label_input_1_display').textContent = data.label_input_1 || 'Input 1';
-        }
-        
-        // Input 1 (editable untuk semua user)
-        document.getElementById('edit_input_1').value = data.input_1 || '';
-        
-        // Analisis dan Evaluasi (editable untuk semua user)
-        document.getElementById('edit_hambatan').value = data.hambatan || '';
-        document.getElementById('edit_rekomendasi').value = data.rekomendasi || '';
-        document.getElementById('edit_tindak_lanjut').value = data.tindak_lanjut || '';
-        document.getElementById('edit_keberhasilan').value = data.keberhasilan || '';
-        
-        // Jika sudah ada data capaian, tampilkan
-        if (capaianData) {
-            updateCapaianDisplay(
-                capaianData.capaian,
-                capaianData.status,
-                capaianData.persentase,
-                capaianData.progress_width
-            );
-        } else {
-            resetCapaianDisplay();
-        }
-        
-        // Set action form
         document.getElementById('editForm').action = `/ptip/${data.id}`;
+        
+        // Set modal title
+        document.getElementById('editModalTitle').textContent = userType === 'superadmin' 
+            ? 'Edit Data PTIP (Super Admin)' 
+            : 'Edit Data PTIP (Admin)';
+        
+        // Tampilkan modal
         document.getElementById('editModal').classList.remove('hidden');
+        
+        // Attach event listener untuk tombol hitung
+        attachEditHitungListener(data, userType);
     }
     
-    // Fungsi untuk update tampilan capaian
-    function updateCapaianDisplay(capaian, status, persentase, progressWidth) {
-        const resultEl = document.getElementById('edit_capaian_result');
-        const statusEl = document.getElementById('edit_status_capaian_result');
-        const persentaseEl = document.getElementById('edit_persentase_capaian');
-        const progressBar = document.getElementById('edit_progress_bar');
-        const progressPercent = document.getElementById('edit_progress_percent');
-        
-        resultEl.value = capaian;
-        statusEl.value = status;
-        persentaseEl.value = persentase;
-        progressBar.style.width = progressWidth + '%';
-        progressPercent.textContent = progressWidth.toFixed(1) + '%';
-        
-        // Set warna berdasarkan status
-        if (parseFloat(capaian) >= 1) {
-            progressBar.className = 'h-2 rounded-full bg-green-500';
-            statusEl.className = 'w-full px-3 py-2 border rounded-lg font-medium text-green-600 border-green-300 bg-green-50';
-        } else if (parseFloat(capaian) >= 0.8) {
-            progressBar.className = 'h-2 rounded-full bg-yellow-500';
-            statusEl.className = 'w-full px-3 py-2 border rounded-lg font-medium text-yellow-600 border-yellow-300 bg-yellow-50';
-        } else {
-            progressBar.className = 'h-2 rounded-full bg-red-500';
-            statusEl.className = 'w-full px-3 py-2 border rounded-lg font-medium text-red-600 border-red-300 bg-red-50';
+    // Fungsi untuk attach event listener tombol hitung di modal
+    function attachEditHitungListener(data, userType) {
+        const editHitungBtn = document.getElementById('edit_hitungBtn');
+        if (editHitungBtn) {
+            editHitungBtn.addEventListener('click', async function() {
+                let target, input1;
+                
+                if (userType === 'superadmin') {
+                    target = document.getElementById('edit_target').value;
+                } else {
+                    target = data.target || document.querySelector('input[name="target"]').value;
+                }
+                
+                input1 = document.getElementById('edit_input_1').value;
+                
+                if (!target || target == 0) {
+                    alert('Target tidak boleh 0');
+                    return;
+                }
+                
+                if (!input1) {
+                    alert('Input 1 harus diisi');
+                    return;
+                }
+                
+                // Hitung capaian
+                const result = await calculateCapaianAPI(parseFloat(input1), parseFloat(target));
+                
+                if (result && result.success) {
+                    // Update tampilan
+                    document.getElementById('edit_capaian_result').value = result.capaian + '%';
+                    document.getElementById('edit_status_capaian_result').value = result.status;
+                    document.getElementById('edit_status_capaian_result').className = `w-full px-3 py-2 border rounded-lg font-medium ${
+                        result.status === 'Tercapai' ? 'text-green-600 border-green-300 bg-green-50' :
+                        result.status === 'Hampir Tercapai' ? 'text-yellow-600 border-yellow-300 bg-yellow-50' :
+                        'text-red-600 border-red-300 bg-red-50'
+                    }`;
+                    
+                    // Update progress bar
+                    const progressWidth = result.progress_width;
+                    document.getElementById('edit_progress_bar').style.width = progressWidth + '%';
+                    document.getElementById('edit_progress_percent').textContent = progressWidth.toFixed(1) + '%';
+                    
+                    // Update progress bar color
+                    if (result.capaian_raw >= 100) {
+                        document.getElementById('edit_progress_bar').className = 'h-2 rounded-full bg-green-500';
+                    } else if (result.capaian_raw >= 80) {
+                        document.getElementById('edit_progress_bar').className = 'h-2 rounded-full bg-yellow-500';
+                    } else {
+                        document.getElementById('edit_progress_bar').className = 'h-2 rounded-full bg-red-500';
+                    }
+                    
+                    // Simpan nilai hidden
+                    document.getElementById('edit_capaian_hidden').value = result.capaian_raw;
+                    document.getElementById('edit_status_capaian_hidden').value = result.status;
+                } else {
+                    alert('Error: ' + (result ? result.error : 'Gagal menghitung capaian'));
+                }
+            });
         }
-        
-        // Simpan nilai hidden
-        document.getElementById('edit_capaian_hidden').value = capaian;
-        document.getElementById('edit_status_capaian_hidden').value = status;
     }
     
-    // Fungsi untuk reset tampilan capaian
-    function resetCapaianDisplay() {
-        document.getElementById('edit_capaian_result').value = '';
-        document.getElementById('edit_status_capaian_result').value = '';
-        document.getElementById('edit_persentase_capaian').value = '';
-        document.getElementById('edit_progress_bar').style.width = '0%';
-        document.getElementById('edit_progress_percent').textContent = '0%';
-        document.getElementById('edit_progress_bar').className = 'h-2 rounded-full bg-blue-500';
-        document.getElementById('edit_status_capaian_result').className = 'w-full px-3 py-2 border rounded-lg font-medium text-gray-900';
-        document.getElementById('edit_capaian_hidden').value = '';
-        document.getElementById('edit_status_capaian_hidden').value = '';
-    }
-    
-    // Event listener untuk tombol edit di accordion
+    // Edit button functionality
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const jenis = this.getAttribute('data-jenis') || 'ptip';
-            loadEditData(id, jenis);
-        });
-    });
-    
-    // Event listener untuk tombol hitung capaian di modal edit
-    document.getElementById('editHitungCapaianBtn').addEventListener('click', function() {
-        let target, input1;
-        
-        if (isSuperAdmin) {
-            target = document.getElementById('edit_target').value;
-        } else {
-            target = document.getElementById('edit_target').value;
-        }
-        
-        input1 = document.getElementById('edit_input_1').value;
-        
-        calculateCapaian(input1, target, function(data) {
-            updateCapaianDisplay(
-                data.capaian,
-                data.status,
-                data.persentase,
-                data.progress_width
-            );
-        });
-    });
-    
-    // Event listener untuk submit form edit
-    document.getElementById('editForm').addEventListener('submit', function(e) {
-        const capaianHidden = document.getElementById('edit_capaian_hidden').value;
-        const statusCapaianHidden = document.getElementById('edit_status_capaian_hidden').value;
-        
-        if (!capaianHidden || !statusCapaianHidden) {
-            e.preventDefault();
-            const confirmHitung = confirm('Capaian belum dihitung. Hitung capaian terlebih dahulu?');
+            const data = {
+                id: this.getAttribute('data-id'),
+                sasaran_strategis: this.getAttribute('data-sasaran'),
+                indikator_kinerja: this.getAttribute('data-indikator'),
+                target: this.getAttribute('data-target'),
+                label_input_1: this.getAttribute('data-label-input-1'),
+                input_1: this.getAttribute('data-input-1'),
+                bulan: this.getAttribute('data-bulan'),
+                tahun: this.getAttribute('data-tahun'),
+                hambatan: this.getAttribute('data-hambatan'),
+                rekomendasi: this.getAttribute('data-rekomendasi'),
+                tindak_lanjut: this.getAttribute('data-tindak-lanjut'),
+                keberhasilan: this.getAttribute('data-keberhasilan'),
+                capaian: this.closest('.accordion-item').querySelector('[class*="text-green-600"], [class*="text-yellow-600"], [class*="text-red-600"]')?.textContent?.replace('Capaian: ', '').replace('%', '') || 0,
+                status_capaian: this.closest('.accordion-item').querySelector('[class*="text-green-500"], [class*="text-yellow-500"], [class*="text-red-500"]')?.textContent || ''
+            };
             
-            if (confirmHitung) {
-                e.preventDefault();
-                document.getElementById('editHitungCapaianBtn').click();
-                
-                // Tunggu 500ms lalu tanyakan lagi
-                setTimeout(() => {
-                    const confirmSubmit = confirm('Capaian telah dihitung. Lanjutkan update data?');
-                    if (confirmSubmit) {
-                        document.getElementById('editForm').submit();
-                    }
-                }, 500);
-            }
-            return false;
-        }
-        return true;
+            const userType = this.getAttribute('data-user-type');
+            
+            populateEditModal(data, userType);
+        });
     });
     
     // Close modal
-    document.getElementById('closeModal').addEventListener('click', function() {
-        document.getElementById('editModal').classList.add('hidden');
-        resetCapaianDisplay();
-        document.getElementById('editForm').reset();
-    });
+    const closeModalBtn = document.getElementById('closeModal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editFormFields').innerHTML = '';
+        });
+    }
     
     // Close modal when clicking outside
-    document.getElementById('editModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            document.getElementById('editModal').classList.add('hidden');
-            resetCapaianDisplay();
-            document.getElementById('editForm').reset();
-        }
-    });
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                document.getElementById('editModal').classList.add('hidden');
+                document.getElementById('editFormFields').innerHTML = '';
+            }
+        });
+    }
     
     // ==================== FILTER DATA PTIP ====================
     const filterBulan = document.getElementById('filterBulan');
@@ -1620,95 +1714,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filterDataPTIP();
     });
     
-    // ==================== FILTER UPLOAD LAMPIRAN ====================
-    const lampiranFilterBulan = document.getElementById('lampiranFilterBulan');
-    const lampiranFilterTahun = document.getElementById('lampiranFilterTahun');
-    const lampiranFilterIndikator = document.getElementById('lampiranFilterIndikator');
-    const filterLampiranBtn = document.getElementById('filterLampiranBtn');
-    const lampiranPtipSelect = document.getElementById('lampiranPtipSelect');
-    
-    function filterLampiranOptions() {
-        const selectedBulan = lampiranFilterBulan ? lampiranFilterBulan.value : '';
-        const selectedTahun = lampiranFilterTahun ? lampiranFilterTahun.value : '';
-        const searchIndikator = lampiranFilterIndikator ? lampiranFilterIndikator.value.toLowerCase() : '';
-        
-        let hasVisibleOptions = false;
-        
-        Array.from(lampiranPtipSelect.options).forEach(option => {
-            if (option.value === '') return;
-            
-            const optionBulan = option.getAttribute('data-bulan');
-            const optionTahun = option.getAttribute('data-tahun');
-            const optionIndikator = option.getAttribute('data-indikator')?.toLowerCase() || '';
-            const optionSasaran = option.getAttribute('data-sasaran');
-            
-            const matchBulan = !selectedBulan || selectedBulan === optionBulan;
-            const matchTahun = !selectedTahun || selectedTahun === optionTahun;
-            const matchIndikator = !searchIndikator || optionIndikator.includes(searchIndikator) || 
-                                   optionSasaran.toLowerCase().includes(searchIndikator);
-            
-            if (matchBulan && matchTahun && matchIndikator) {
-                option.style.display = '';
-                option.disabled = false;
-                hasVisibleOptions = true;
-            } else {
-                option.style.display = 'none';
-                option.disabled = true;
-            }
-        });
-        
-        // Reset selection jika opsi yang dipilih tidak sesuai filter
-        const selectedOption = lampiranPtipSelect.options[lampiranPtipSelect.selectedIndex];
-        if (selectedOption && selectedOption.style.display === 'none') {
-            lampiranPtipSelect.value = '';
-            document.getElementById('selectedSasaran').textContent = '-';
-        }
-        
-        // Tampilkan pesan jika tidak ada opsi
-        const filterMessage = document.getElementById('filterLampiranMessage');
-        if (!hasVisibleOptions && lampiranPtipSelect.options.length > 1) {
-            if (!filterMessage) {
-                const message = document.createElement('p');
-                message.id = 'filterLampiranMessage';
-                message.className = 'text-sm text-amber-600 mt-2';
-                message.textContent = 'Tidak ada data PTIP yang sesuai dengan filter yang dipilih.';
-                lampiranPtipSelect.parentNode.appendChild(message);
-            }
-        } else if (filterMessage) {
-            filterMessage.remove();
-        }
-    }
-    
-    // Event listener untuk perubahan pilihan data PTIP
-    if (lampiranPtipSelect) {
-        lampiranPtipSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                const sasaran = selectedOption.getAttribute('data-sasaran');
-                const capaian = selectedOption.getAttribute('data-capaian');
-                let displayText = 'Sasaran: ' + sasaran;
-                if (capaian) {
-                    displayText += ' | Capaian: ' + parseFloat(capaian).toFixed(2);
-                }
-                document.getElementById('selectedSasaran').textContent = displayText;
-            } else {
-                document.getElementById('selectedSasaran').textContent = '-';
-            }
-        });
-    }
-    
-    if (filterLampiranBtn) {
-        filterLampiranBtn.addEventListener('click', filterLampiranOptions);
-    }
-    
-    // Filter real-time saat mengetik di input indikator
-    if (lampiranFilterIndikator) {
-        lampiranFilterIndikator.addEventListener('input', filterLampiranOptions);
-    }
-    
     // ==================== LAMPIRAN FUNCTIONALITY ====================
-    
-    let lampiranData = [];
     
     function formatFileSize(bytes) {
         if (bytes >= 1073741824) {
@@ -1751,7 +1757,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 loading.classList.add('hidden');
-                lampiranData = data;
                 
                 if (data.length === 0) {
                     empty.classList.remove('hidden');
@@ -1768,10 +1773,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     let capaianClass = '';
                     
                     if (capaian) {
-                        capaianDisplay = parseFloat(capaian).toFixed(2);
-                        if (capaian >= 1) {
+                        capaianDisplay = parseFloat(capaian).toFixed(2) + '%';
+                        if (capaian >= 100) {
                             capaianClass = 'bg-green-100 text-green-800';
-                        } else if (capaian >= 0.8) {
+                        } else if (capaian >= 80) {
                             capaianClass = 'bg-yellow-100 text-yellow-800';
                         } else {
                             capaianClass = 'bg-red-100 text-red-800';
@@ -1838,6 +1843,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 }).join('');
                 
+                // Tambahkan event listener untuk tombol edit dan hapus lampiran
                 document.querySelectorAll('.edit-lampiran-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.getAttribute('data-id');
@@ -1865,53 +1871,89 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    const daftarFilterBtn = document.getElementById('daftarFilterBtn');
-    
-    if (daftarFilterBtn) {
-        daftarFilterBtn.addEventListener('click', loadLampiranData);
-    }
-    
-    const uploadForm = document.getElementById('uploadLampiranForm');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    // Event listener untuk filter lampiran
+    document.getElementById('filterLampiranBtn')?.addEventListener('click', function() {
+        const bulan = document.getElementById('lampiranFilterBulan').value;
+        const tahun = document.getElementById('lampiranFilterTahun').value;
+        const indikator = document.getElementById('lampiranFilterIndikator').value.toLowerCase();
+        
+        const options = document.querySelectorAll('#lampiranPtipSelect option');
+        options.forEach(option => {
+            if (option.value === '') return;
             
-            const formData = new FormData(this);
-            const uploadBtn = document.getElementById('uploadBtn');
-            const originalText = uploadBtn.innerHTML;
+            const optionBulan = option.getAttribute('data-bulan');
+            const optionTahun = option.getAttribute('data-tahun');
+            const optionIndikator = option.getAttribute('data-indikator').toLowerCase();
             
-            uploadBtn.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Mengupload...';
-            uploadBtn.disabled = true;
+            const matchBulan = !bulan || bulan === optionBulan;
+            const matchTahun = !tahun || tahun === optionTahun;
+            const matchIndikator = !indikator || optionIndikator.includes(indikator);
             
-            fetch('/ptip/lampiran', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Lampiran berhasil diupload!');
-                    uploadForm.reset();
+            if (matchBulan && matchTahun && matchIndikator) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+                if (option.selected) {
+                    option.selected = false;
+                    document.getElementById('lampiranPtipSelect').value = '';
                     document.getElementById('selectedSasaran').textContent = '-';
-                    loadLampiranData();
-                } else {
-                    alert('Error: ' + (data.error || 'Gagal mengupload lampiran'));
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat mengupload lampiran');
-            })
-            .finally(() => {
-                uploadBtn.innerHTML = originalText;
-                uploadBtn.disabled = false;
-            });
+            }
         });
-    }
+    });
     
+    // Event listener untuk menampilkan sasaran strategis saat memilih data
+    document.getElementById('lampiranPtipSelect')?.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const sasaran = selectedOption.getAttribute('data-sasaran');
+        document.getElementById('selectedSasaran').textContent = sasaran || '-';
+    });
+    
+    // Event listener untuk form upload lampiran
+    document.getElementById('uploadLampiranForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const uploadBtn = document.getElementById('uploadBtn');
+        const originalText = uploadBtn.innerHTML;
+        
+        // Show loading state
+        uploadBtn.innerHTML = `
+            <div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Mengupload...
+        `;
+        uploadBtn.disabled = true;
+        
+        fetch('/ptip/lampiran', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lampiran berhasil diupload!');
+                this.reset();
+                document.getElementById('selectedSasaran').textContent = '-';
+                loadLampiranData();
+            } else {
+                alert('Error: ' + (data.error || 'Gagal mengupload lampiran'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengupload lampiran');
+        })
+        .finally(() => {
+            // Reset button state
+            uploadBtn.innerHTML = originalText;
+            uploadBtn.disabled = false;
+        });
+    });
+    
+    // Event listener untuk form edit lampiran
     const editLampiranForm = document.getElementById('editLampiranForm');
     if (editLampiranForm) {
         editLampiranForm.addEventListener('submit', function(e) {
@@ -1945,9 +1987,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Close lampiran modal
+    document.getElementById('closeLampiranModal')?.addEventListener('click', function() {
+        document.getElementById('editLampiranModal').classList.add('hidden');
+    });
+    
+    // Close lampiran modal when clicking outside
+    document.getElementById('editLampiranModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            document.getElementById('editLampiranModal').classList.add('hidden');
+        }
+    });
+    
+    // Fungsi untuk menghapus lampiran
     function deleteLampiran(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus lampiran ini?')) return;
-        
         fetch(`/ptip/lampiran/${id}`, {
             method: 'POST',
             headers: {
@@ -1970,12 +2023,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Event listener untuk filter daftar lampiran
+    document.getElementById('daftarFilterBtn')?.addEventListener('click', function() {
+        loadLampiranData();
+    });
+    
+    // Load lampiran data jika tab lampiran aktif
     if (document.getElementById('lampiranContent').classList.contains('active')) {
         loadLampiranData();
     }
 });
 </script>
-
 <style>
 .tab-content {
     transition: opacity 0.3s ease;
@@ -2019,22 +2077,17 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-#cariBtn, #filterLampiranBtn, #daftarFilterBtn {
+#cariBtn, #hitungBtn, #edit_hitungBtn {
     transition: all 0.3s ease;
 }
 
-#cariBtn:hover, #filterLampiranBtn:hover, #daftarFilterBtn:hover {
+#cariBtn:hover, #hitungBtn:hover, #edit_hitungBtn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
 }
 
-#cariBtn:active, #filterLampiranBtn:active, #daftarFilterBtn:active {
+#cariBtn:active, #hitungBtn:active, #edit_hitungBtn:active {
     transform: translateY(0);
-}
-
-#hitungCapaianBtn:hover, #editHitungCapaianBtn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
 #progress_bar, #edit_progress_bar {

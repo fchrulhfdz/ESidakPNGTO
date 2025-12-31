@@ -450,12 +450,28 @@
             return '-';
         }
         
+        // Fungsi helper untuk format angka desimal
+        function formatAngkaDecimal($value) {
+            if (is_numeric($value)) {
+                return number_format($value, 2, ',', '.');
+            }
+            return '-';
+        }
+        
         // Fungsi helper untuk format teks analisis
         function formatAnalisis($value) {
             if (!empty($value) && $value != '-') {
                 return nl2br(e($value));
             }
             return '<span class="nilai-nihil">-</span>';
+        }
+        
+        // Fungsi untuk menentukan apakah input_2 digunakan
+        function shouldShowInput2($item) {
+            if (!isset($item->use_input_2)) {
+                return false;
+            }
+            return $item->use_input_2 === true;
         }
         
         // Judul berdasarkan jenis laporan
@@ -509,6 +525,7 @@
                 <th rowspan="2" class="col-no">NO</th>
                 <th rowspan="2" class="col-sasaran">SASARAN STRATEGIS</th>
                 <th rowspan="2" class="col-indikator">INDIKATOR KINERJA</th>
+                <th rowspan="2" class="col-input">TARGET</th>
                 <th colspan="3">REALISASI</th>
                 <th rowspan="2" class="col-capaian">CAPAIAN</th>
             </tr>
@@ -549,10 +566,19 @@
                             @endif
                         </td>
                         <td class="text-center angka">
+                            {{ formatAngka($item->target ?? 0) }}
+                        </td>
+                        <td class="text-center angka">
                             {{ formatAngka($item->input_1 ?? 0) }}
                         </td>
                         <td class="text-center angka">
-                            {{ formatAngka($item->input_2 ?? 0) }}
+                            @if(shouldShowInput2($item) && $item->input_2 !== null)
+                                {{ $item->input_2 }}
+                            @elseif(shouldShowInput2($item))
+                                0
+                            @else
+                                <span class="nilai-nihil">-</span>
+                            @endif
                         </td>
                         <td class="text-center angka">
                             {{ formatAngka($item->realisasi ?? 0) }}
@@ -629,6 +655,7 @@
                 <th class="col-no">NO</th>
                 <th class="col-sasaran">SASARAN STRATEGIS</th>
                 <th class="col-indikator">INDIKATOR KINERJA</th>
+                <th class="col-input">TARGET</th>
                 <th class="col-realisasi">REALISASI</th>
                 <th class="col-capaian">CAPAIAN</th>
             </tr>
@@ -662,6 +689,9 @@
                             @else
                                 <span class="nilai-nihil">-</span>
                             @endif
+                        </td>
+                        <td class="text-center angka">
+                            {{ formatAngka($item->target ?? 0) }}
                         </td>
                         <td class="text-center angka">
                             {{ formatAngka($item->realisasi ?? 0) }}
@@ -733,11 +763,12 @@
         @if($hasKepanitraan || $hasKesekretariatan)
         <div class="footer-info">
             <p><strong>Keterangan:</strong></p>
-            <p>1. Input 1 dan Input 2 adalah komponen perhitungan untuk indikator kinerja tertentu</p>
-            <p>2. Realisasi adalah hasil aktual yang dicapai</p>
-            <p>3. Capaian dihitung berdasarkan perbandingan antara realisasi dengan target</p>
-            <p>4. Warna hijau: capaian ≥ 90%, kuning: 70-89%, merah: < 70%, abu-abu: tidak ada data</p>
-            <p>5. Analisis meliputi hambatan, rekomendasi, tindak lanjut, dan keberhasilan yang dicapai</p>
+            <p>1. Bagian Kepanitraan menggunakan 1 atau 2 input tergantung jenis indikator</p>
+            <p>2. Bagian Kesekretariatan hanya menggunakan 1 input</p>
+            <p>3. Realisasi adalah hasil aktual yang dicapai</p>
+            <p>4. Capaian dihitung berdasarkan perbandingan antara realisasi dengan target</p>
+            <p>5. Warna hijau: capaian ≥ 90%, kuning: 70-89%, merah: < 70%, abu-abu: tidak ada data</p>
+            <p>6. Analisis meliputi hambatan, rekomendasi, tindak lanjut, dan keberhasilan yang dicapai</p>
         </div>
         
         <div class="ttd-area">
